@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Download, CheckCircle, MessageSquare, Clock, AlertCircle, Play } from "lucide-react";
 import { format } from "date-fns";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { MultiFormatExport } from "@/components/MultiFormatExport";
 
 interface Version {
   id: string;
@@ -346,7 +347,7 @@ export default function ClientDeliverables() {
                         </div>
 
                         {isVideoFile(version.file_name) && videoUrls[version.id] && (
-                          <div className="mb-4">
+                          <div className="space-y-4 mb-4">
                             <VideoPlayer
                               src={videoUrls[version.id]}
                               title={`${deliverable.title} - Version ${version.version_number}`}
@@ -367,6 +368,14 @@ export default function ClientDeliverables() {
                                 });
                               }}
                             />
+                            
+                            {/* Multi-Format Export */}
+                            {version.status === "approved" && (
+                              <MultiFormatExport
+                                videoUrl={videoUrls[version.id]}
+                                videoTitle={`${deliverable.title}_v${version.version_number}`}
+                              />
+                            )}
                           </div>
                         )}
 
