@@ -355,8 +355,15 @@ const BookingPortal = () => {
           {step === 1 && (
             <div>
               <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold mb-4">Choose Your Package</h1>
-                <p className="text-xl text-muted-foreground">Select the package that best fits your needs</p>
+                <Badge variant="secondary" className="mb-4 bg-primary/20 text-primary border-primary/30">
+                  FOUNDER REALITY SERIES
+                </Badge>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  Book Your Free Strategy Call
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  30 minutes with Eric. Zero pressure.
+                </p>
               </div>
 
               {/* Payment Terms Info */}
