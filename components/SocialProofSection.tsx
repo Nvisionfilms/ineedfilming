@@ -1,8 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Quote, TrendingUp, Users } from "lucide-react";
-import { useState } from "react";
+import { Star, Quote, TrendingUp, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const testimonials = [
   {
@@ -64,7 +66,12 @@ const stats = [
 
 const SocialProofSection = () => {
   const [expandedReviews, setExpandedReviews] = useState<Set<number>>(new Set());
-  const [showAll, setShowAll] = useState(false);
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start" },
+    [Autoplay({ delay: 5000, stopOnInteraction: true })]
+  );
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
 
   const toggleReview = (index: number) => {
     const newExpanded = new Set(expandedReviews);
@@ -81,7 +88,26 @@ const SocialProofSection = () => {
     return text.slice(0, maxLength) + "...";
   };
 
-  const displayedTestimonials = showAll ? testimonials : testimonials.slice(0, 3);
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+  }, [emblaApi, onSelect]);
 
   return (
     <section id="results" className="py-12 bg-gradient-to-b from-background to-card/20">
@@ -112,13 +138,13 @@ const SocialProofSection = () => {
           ))}
         </div>
         
-        {/* Testimonials */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto mb-8">
-          {displayedTestimonials.map((testimonial, index) => (
-            <Card 
-              key={index} 
-              className="p-6 card-cinematic bg-gradient-card border-border/50 hover:border-primary/30"
-            >
+        {/* Testimonials Carousel */}
+        <div className="relative max-w-7xl mx-auto mb-8">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-6">
+              {testimonials.map((testimonial, index) => (
+              <div key={index} className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] pl-6 first:pl-0">
+                <Card className="p-6 card-cinematic bg-gradient-card border-border/50 hover:border-primary/30 h-full">
               {/* Quote Icon */}
               <Quote className="w-6 h-6 text-primary/30 mb-3" />
               
@@ -156,23 +182,35 @@ const SocialProofSection = () => {
                 <div className="font-semibold text-sm">{testimonial.name}</div>
                 <div className="text-xs text-muted-foreground">{testimonial.role}</div>
                 <div className="text-xs text-primary font-medium">{testimonial.company}</div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* View More/Less Button */}
-        {testimonials.length > 3 && (
-          <div className="text-center mb-10">
-            <Button
-              variant="outline"
-              onClick={() => setShowAll(!showAll)}
-              className="px-8"
-            >
-              {showAll ? "Show Less Reviews" : `View All ${testimonials.length} Reviews`}
-            </Button>
+                </div>
+              </Card>
+            </div>
+            ))}
           </div>
-        )}
+        </div>
+        
+        {/* Carousel Navigation */}
+        <div className="flex justify-center gap-4 mb-10">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={scrollPrev}
+            disabled={!canScrollPrev}
+            className="rounded-full"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={scrollNext}
+            disabled={!canScrollNext}
+            className="rounded-full"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
         
         {/* Social Proof Footer */}
         <div className="text-center">
