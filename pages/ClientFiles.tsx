@@ -21,6 +21,7 @@ import {
   FileIcon 
 } from "lucide-react";
 import { ClientNavigation } from "@/components/client/ClientNavigation";
+import { EnhancedFileUpload } from "@/components/EnhancedFileUpload";
 
 interface ProjectFile {
   id: string;

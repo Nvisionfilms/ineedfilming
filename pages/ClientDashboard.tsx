@@ -10,6 +10,7 @@ import { Loader2, FolderOpen, MessageSquare, Upload, Download, Calendar, DollarS
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { StorageUpgradeDialog } from "@/components/StorageUpgradeDialog";
 import { ClientNavigation } from "@/components/client/ClientNavigation";
+import { ProjectProgressTracker } from "@/components/ProjectProgressTracker";
 
 interface ClientData {
   account: any;
@@ -283,39 +284,12 @@ const ClientDashboard = () => {
           currentUsage={Number(data.account.storage_used_gb)}
         />
 
-        {/* Project Info */}
+        {/* Project Progress Tracker */}
         {data.project && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Project Name</span>
-                <span className="font-medium">{data.project.project_name}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Type</span>
-                <Badge variant="secondary">{data.project.project_type}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Status</span>
-                <Badge>{data.project.status}</Badge>
-              </div>
-              {data.project.shoot_date && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Shoot Date</span>
-                  <span className="font-medium">{new Date(data.project.shoot_date).toLocaleDateString()}</span>
-                </div>
-              )}
-              {data.project.delivery_date && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Delivery Date</span>
-                  <span className="font-medium">{new Date(data.project.delivery_date).toLocaleDateString()}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ProjectProgressTracker
+            currentPhase={data.project.status || "pre-production"}
+            projectName={data.project.project_name}
+          />
         )}
 
         {/* Upcoming Meetings */}
