@@ -8,49 +8,49 @@ All colors MUST be HSL for perfect theme consistency.
 
 @layer base {
   :root {
-    /* Core Brand Colors - Reality Series Vibes */
-    --background: 280 20% 6%;
-    --foreground: 30 40% 98%;
+    /* Core Brand Colors - Cinematic Film Vibes */
+    --background: 220 25% 8%;
+    --foreground: 45 100% 98%;
 
-    --card: 285 25% 10%;
-    --card-foreground: 30 40% 98%;
+    --card: 220 20% 12%;
+    --card-foreground: 45 100% 98%;
 
-    --popover: 285 25% 10%;
-    --popover-foreground: 30 40% 98%;
+    --popover: 220 20% 12%;
+    --popover-foreground: 45 100% 98%;
 
-    /* Primary - Sunset Coral */
-    --primary: 15 90% 60%;
-    --primary-foreground: 280 20% 6%;
+    /* Primary - Cinematic Gold */
+    --primary: 45 100% 55%;
+    --primary-foreground: 220 25% 8%;
     
-    /* Secondary - Deep Purple */
-    --secondary: 280 60% 50%;
-    --secondary-foreground: 30 40% 98%;
+    /* Secondary - Film Reel Blue */
+    --secondary: 200 80% 50%;
+    --secondary-foreground: 45 100% 98%;
 
-    /* Muted - Warm Dark */
-    --muted: 285 18% 14%;
-    --muted-foreground: 30 20% 70%;
+    /* Muted - Warm Charcoal */
+    --muted: 220 15% 18%;
+    --muted-foreground: 45 30% 75%;
 
-    /* Accent - Electric Magenta */
-    --accent: 330 85% 65%;
-    --accent-foreground: 280 20% 6%;
+    /* Accent - Electric Cyan */
+    --accent: 180 100% 50%;
+    --accent-foreground: 220 25% 8%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 30 40% 98%;
+    --destructive-foreground: 45 100% 98%;
 
-    --border: 285 18% 18%;
-    --input: 285 18% 14%;
-    --ring: 15 90% 60%;
+    --border: 220 15% 22%;
+    --input: 220 15% 18%;
+    --ring: 45 100% 55%;
     
     /* Custom Cinematic Variables */
-    --gradient-hero: linear-gradient(135deg, hsl(15 90% 60% / 0.9), hsl(330 85% 65% / 0.8));
-    --gradient-card: linear-gradient(145deg, hsl(285 25% 10% / 0.9), hsl(285 18% 14% / 0.6));
-    --gradient-cta: linear-gradient(135deg, hsl(15 90% 60%), hsl(15 90% 50%));
-    --gradient-accent: linear-gradient(135deg, hsl(330 85% 65%), hsl(280 60% 50%));
+    --gradient-hero: linear-gradient(135deg, hsl(45 100% 55% / 0.9), hsl(30 100% 50% / 0.8));
+    --gradient-card: linear-gradient(145deg, hsl(220 20% 12% / 0.95), hsl(220 15% 18% / 0.8));
+    --gradient-cta: linear-gradient(135deg, hsl(45 100% 55%), hsl(30 100% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(180 100% 50%), hsl(200 80% 50%));
     
     /* Shadows */
-    --shadow-cinematic: 0 25px 50px -12px hsl(15 90% 20% / 0.25);
-    --shadow-glow: 0 0 30px hsl(330 85% 60% / 0.3);
-    --shadow-card: 0 10px 30px -5px hsl(280 20% 6% / 0.4);
+    --shadow-cinematic: 0 25px 50px -12px hsl(45 100% 30% / 0.35);
+    --shadow-glow: 0 0 40px hsl(45 100% 50% / 0.4);
+    --shadow-card: 0 10px 30px -5px hsl(220 25% 8% / 0.5);
     
     /* Animations */
     --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -141,6 +141,50 @@ All colors MUST be HSL for perfect theme consistency.
     animation: float 6s ease-in-out infinite;
   }
   
+  /* Pulsing glow animation */
+  @keyframes glow-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 20px hsl(45 100% 50% / 0.3),
+                  0 0 40px hsl(45 100% 50% / 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 30px hsl(45 100% 50% / 0.5),
+                  0 0 60px hsl(45 100% 50% / 0.3),
+                  0 0 80px hsl(45 100% 50% / 0.1);
+    }
+  }
+  
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  
+  /* Spotlight sweep animation */
+  @keyframes spotlight {
+    0% { transform: translateX(-100%) rotate(-45deg); }
+    100% { transform: translateX(200%) rotate(-45deg); }
+  }
+  
+  .spotlight-effect {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .spotlight-effect::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(45 100% 70% / 0.15),
+      transparent
+    );
+    animation: spotlight 8s linear infinite;
+  }
+  
   /* Gradient text effect */
   .text-gradient {
     background: var(--gradient-hero);
@@ -159,5 +203,35 @@ All colors MUST be HSL for perfect theme consistency.
   
   .card-cinematic:hover {
     box-shadow: var(--shadow-cinematic);
+  }
+  
+  /* Film grain texture overlay */
+  @keyframes grain {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -10%); }
+    20% { transform: translate(-15%, 5%); }
+    30% { transform: translate(7%, -25%); }
+    40% { transform: translate(-5%, 25%); }
+    50% { transform: translate(-15%, 10%); }
+    60% { transform: translate(15%, 0%); }
+    70% { transform: translate(0%, 15%); }
+    80% { transform: translate(3%, 35%); }
+    90% { transform: translate(-10%, 10%); }
+  }
+  
+  .film-grain::after {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    width: 200%;
+    height: 200vh;
+    background: transparent url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=') repeat;
+    pointer-events: none;
+    opacity: 0.03;
+    animation: grain 8s steps(10) infinite;
+    z-index: 9999;
   }
 }
