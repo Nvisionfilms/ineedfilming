@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Download, CheckCircle, MessageSquare, Clock, AlertCircle, Play } from "lucide-react";
 import { format } from "date-fns";
+import { VideoPlayer } from "@/components/VideoPlayer";
 
 interface Version {
   id: string;
@@ -345,34 +346,27 @@ export default function ClientDeliverables() {
                         </div>
 
                         {isVideoFile(version.file_name) && videoUrls[version.id] && (
-                          <div className="mb-4 rounded-lg overflow-hidden bg-black">
-                            <video
-                              ref={(el) => { videoRefs.current[version.id] = el; }}
-                              controls
-                              className="w-full"
+                          <div className="mb-4">
+                            <VideoPlayer
                               src={videoUrls[version.id]}
-                            >
-                              Your browser does not support video playback.
-                            </video>
-                            {version.status === "pending_review" && (
-                              <div className="p-2 bg-muted">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    captureTimestamp(version.id);
-                                    setFeedbackDialog({ 
-                                      open: true, 
-                                      versionId: version.id,
-                                      versionNumber: version.version_number 
-                                    });
-                                  }}
-                                >
-                                  <Clock className="h-4 w-4 mr-2" />
-                                  Mark Timestamp
-                                </Button>
-                              </div>
-                            )}
+                              title={`${deliverable.title} - Version ${version.version_number}`}
+                              showTimestampButton={version.status === "pending_review"}
+                              onTimestampCapture={(timestamp) => {
+                                setFeedbackForm({ ...feedbackForm, timecode: timestamp });
+                                setFeedbackDialog({ 
+                                  open: true, 
+                                  versionId: version.id,
+                                  versionNumber: version.version_number 
+                                });
+                              }}
+                              onFeedback={() => {
+                                setFeedbackDialog({ 
+                                  open: true, 
+                                  versionId: version.id,
+                                  versionNumber: version.version_number 
+                                });
+                              }}
+                            />
                           </div>
                         )}
 
