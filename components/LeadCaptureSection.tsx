@@ -33,6 +33,23 @@ const LeadCaptureSection = () => {
   const [mood, setMood] = useState([50]);
   const [genre, setGenre] = useState([50]);
   const [filmingTime, setFilmingTime] = useState([6]);
+  
+  // Enforce budget/duration relationship
+  const handleBudgetChange = (value: number[]) => {
+    setBudget(value);
+    // If budget is under $500, force duration to 1 hour
+    if (value[0] < 500 && filmingTime[0] > 1) {
+      setFilmingTime([1]);
+    }
+  };
+  
+  const handleFilmingTimeChange = (value: number[]) => {
+    setFilmingTime(value);
+    // If duration is 2+ hours, force budget to at least $500
+    if (value[0] >= 2 && budget[0] < 500) {
+      setBudget([500]);
+    }
+  };
   const [preferredDate, setPreferredDate] = useState<Date>();
   const [preferredTime, setPreferredTime] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -216,7 +233,7 @@ const LeadCaptureSection = () => {
                       </div>
                       <Slider
                         value={budget}
-                        onValueChange={setBudget}
+                        onValueChange={handleBudgetChange}
                         min={300}
                         max={15000}
                         step={50}
@@ -282,14 +299,14 @@ const LeadCaptureSection = () => {
                       </div>
                       <Slider
                         value={filmingTime}
-                        onValueChange={setFilmingTime}
-                        min={2}
+                        onValueChange={handleFilmingTimeChange}
+                        min={1}
                         max={10}
                         step={1}
                         className="py-2"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>2 hours</span>
+                        <span>1 hour</span>
                         <span>10 hours</span>
                       </div>
                     </div>
