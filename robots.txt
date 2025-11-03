@@ -1,0 +1,13 @@
+# Allow all search engines to index the site
+User-agent: *
+Allow: /
+
+# Disallow admin and client portals from search engines
+Disallow: /admin
+Disallow: /client
+
+# Sitemap location
+Sitemap: https://nvisionfunnel.lovable.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

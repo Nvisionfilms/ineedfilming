@@ -1,0 +1,31 @@
+project_id = "wgcgeapxxhsmueenxhbt"
+
+[functions.resend-confirmation-email]
+verify_jwt = false
+
+[functions.create-client-account]
+verify_jwt = true
+
+[functions.send-strategy-session]
+verify_jwt = false
+
+[functions.submit-newsletter]
+verify_jwt = false
+
+[functions.vision-chat]
+verify_jwt = false
+
+[functions.submit-custom-booking]
+verify_jwt = false
+
+[functions.approve-custom-booking]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.create-meeting]
+verify_jwt = false
+
+[functions.send-client-notification]
+verify_jwt = false
