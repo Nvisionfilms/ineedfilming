@@ -194,7 +194,7 @@ const LeadCaptureSection = () => {
                     {/* Mood */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs sm:text-sm font-medium">Mood</label>
+                        <label className="text-xs sm:text-sm font-medium">Story Vibe</label>
                         <span className="text-xs sm:text-sm font-semibold text-primary">
                           {getMoodLabel(mood[0])}
                         </span>
@@ -208,15 +208,15 @@ const LeadCaptureSection = () => {
                         className="py-2"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Aspirational</span>
-                        <span>Inspirational</span>
+                        <span>Gritty & Raw</span>
+                        <span>Polished & Inspiring</span>
                       </div>
                     </div>
 
                     {/* Genre */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs sm:text-sm font-medium">Genre</label>
+                        <label className="text-xs sm:text-sm font-medium">Content Style</label>
                         <span className="text-xs sm:text-sm font-semibold text-primary">
                           {getGenreLabel(genre[0])}
                         </span>
@@ -230,15 +230,15 @@ const LeadCaptureSection = () => {
                         className="py-2"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Pop</span>
-                        <span>Other</span>
+                        <span>Documentary</span>
+                        <span>Cinematic</span>
                       </div>
                     </div>
 
                     {/* Filming Time */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs sm:text-sm font-medium">Filming Time Needed</label>
+                        <label className="text-xs sm:text-sm font-medium">Shoot Duration</label>
                         <span className="text-xs sm:text-sm font-semibold text-primary">
                           {filmingTime[0]} hours
                         </span>
