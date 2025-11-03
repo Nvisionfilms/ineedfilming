@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CheckCircle, Clock, Gift, ArrowRight, DollarSign, CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -38,6 +38,44 @@ const LeadCaptureSection = () => {
   const [honeypot, setHoneypot] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  
+  // Update sliders based on project type
+  useEffect(() => {
+    switch (projectType) {
+      case "Founder Story":
+        setMood([40]); // Authentic
+        setGenre([30]); // Docu-Style
+        setFilmingTime([6]);
+        break;
+      case "Commercial":
+        setMood([70]); // Polished
+        setGenre([75]); // Cinematic
+        setFilmingTime([4]);
+        break;
+      case "Content Strategy":
+        setMood([50]); // Balanced
+        setGenre([50]); // Hybrid
+        setFilmingTime([6]);
+        break;
+      case "Event":
+        setMood([60]); // Balanced-Polished
+        setGenre([40]); // Docu-Style
+        setFilmingTime([8]);
+        break;
+      case "Music Video":
+        setMood([80]); // Polished & Inspiring
+        setGenre([90]); // Full Cinematic
+        setFilmingTime([10]);
+        break;
+      case "Other":
+        setMood([50]); // Balanced
+        setGenre([50]); // Hybrid
+        setFilmingTime([6]);
+        break;
+      default:
+        break;
+    }
+  }, [projectType]);
   
   const getMoodLabel = (value: number) => {
     if (value <= 20) return "Gritty & Raw";

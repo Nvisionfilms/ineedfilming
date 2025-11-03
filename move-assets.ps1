@@ -1,0 +1,8 @@
+Copy-Item ".\case-study-blazer-tag.png" ".\assets\"
+Copy-Item ".\case-study-operation1009.png" ".\assets\"
+Copy-Item ".\case-study-philip-israel.png" ".\assets\"
+Copy-Item ".\case-study-triad-films.png" ".\assets\"
+Copy-Item ".\eric-sattler.png" ".\assets\"
+Copy-Item ".\nvlogo.png" ".\assets\"
+Copy-Item ".\hero-bg.jpg" ".\assets\"
+Copy-Item ".\placeholder.svg" ".\assets\"
