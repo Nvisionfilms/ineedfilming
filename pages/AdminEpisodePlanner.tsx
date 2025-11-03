@@ -120,8 +120,13 @@ export default function AdminEpisodePlanner() {
   };
 
   const handleSaveEpisode = async () => {
-    if (!selectedProject || !formData.title) {
-      toast.error("Please fill in required fields");
+    if (!selectedProject) {
+      toast.error("Please select a project first");
+      return;
+    }
+    
+    if (!formData.title) {
+      toast.error("Please enter an episode title");
       return;
     }
 
