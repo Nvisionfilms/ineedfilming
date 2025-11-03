@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Home, FileText, MessageSquare, Settings, Calendar } from "lucide-react";
+import { LogOut, Home, FileText, MessageSquare, Settings, Calendar, Video, FolderOpen } from "lucide-react";
 
 export const ClientNavigation = () => {
   const navigate = useNavigate();
@@ -22,8 +22,9 @@ export const ClientNavigation = () => {
 
   const navItems = [
     { path: "/client/dashboard", label: "Dashboard", icon: Home },
+    { path: "/client/deliverables", label: "Your Episodes", icon: Video },
     { path: "/client/meetings", label: "Meetings", icon: Calendar },
-    { path: "/client/files", label: "Files", icon: FileText },
+    { path: "/client/files", label: "Files", icon: FolderOpen },
     { path: "/client/messages", label: "Messages", icon: MessageSquare },
     { path: "/client/settings", label: "Settings", icon: Settings },
   ];
@@ -33,7 +34,7 @@ export const ClientNavigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <h2 className="text-xl font-bold">Client Portal</h2>
+            <h2 className="text-xl font-bold">Your Story Portal</h2>
             
             <div className="hidden md:flex items-center gap-4">
               {navItems.map((item) => (

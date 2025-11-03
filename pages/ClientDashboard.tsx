@@ -206,8 +206,8 @@ const ClientDashboard = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Deliverables</CardTitle>
-              <Download className="w-4 h-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Episodes Ready</CardTitle>
+              <Video className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{data.fileStats.deliverables}</div>
@@ -229,8 +229,8 @@ const ClientDashboard = () => {
             >
               <MessageSquare className="w-5 h-5 mr-3" />
               <div className="text-left">
-                <div className="font-medium">Messages</div>
-                <div className="text-xs text-muted-foreground">Contact your team</div>
+                <div className="font-medium">Message Eric</div>
+                <div className="text-xs text-muted-foreground">Ask questions, share ideas</div>
               </div>
               {data.unreadMessages > 0 && (
                 <Badge className="ml-auto">{data.unreadMessages}</Badge>
@@ -244,20 +244,20 @@ const ClientDashboard = () => {
             >
               <FolderOpen className="w-5 h-5 mr-3" />
               <div className="text-left">
-                <div className="font-medium">Files</div>
-                <div className="text-xs text-muted-foreground">Manage documents</div>
+                <div className="font-medium">Upload Files</div>
+                <div className="text-xs text-muted-foreground">Share assets & footage</div>
               </div>
             </Button>
 
             <Button 
               variant="outline" 
               className="justify-start h-auto py-4"
-              onClick={() => navigate("/client/files?tab=deliverables")}
+              onClick={() => navigate("/client/deliverables")}
             >
-              <Download className="w-5 h-5 mr-3" />
+              <Video className="w-5 h-5 mr-3" />
               <div className="text-left">
-                <div className="font-medium">Deliverables</div>
-                <div className="text-xs text-muted-foreground">View final products</div>
+                <div className="font-medium">Watch Episodes</div>
+                <div className="text-xs text-muted-foreground">View your founder story</div>
               </div>
             </Button>
 

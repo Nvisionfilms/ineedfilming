@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Briefcase, FolderKanban, DollarSign, Settings, LogOut, Shield, Archive, FileVideo, Calendar, FolderOpen, ChevronDown, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, FolderKanban, DollarSign, Settings, LogOut, Shield, Archive, FileVideo, Calendar, FolderOpen, ChevronDown, MessageSquare, Video, Film, Clapperboard } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -34,21 +34,21 @@ const navGroups = [
     ]
   },
   {
-    title: "CRM",
+    title: "Founder Stories",
     collapsible: true,
     items: [
-      { title: "Bookings", url: "/admin/bookings", icon: Users },
-      { title: "Pipeline", url: "/admin/pipeline", icon: FolderKanban },
+      { title: "Story Requests", url: "/admin/bookings", icon: Video },
+      { title: "Pipeline", url: "/admin/pipeline", icon: Clapperboard },
       { title: "Meetings", url: "/admin/meetings", icon: Calendar },
       { title: "Archived", url: "/admin/archived", icon: Archive },
     ]
   },
   {
-    title: "Client Management",
+    title: "Production",
     collapsible: true,
     items: [
-      { title: "Clients", url: "/admin/clients", icon: Users },
-      { title: "Projects", url: "/admin/projects", icon: Briefcase },
+      { title: "Founders", url: "/admin/clients", icon: Users },
+      { title: "Episodes", url: "/admin/projects", icon: Film },
       { title: "Messages", url: "/admin/messages", icon: MessageSquare },
     ]
   },
@@ -71,7 +71,7 @@ const navGroups = [
 export function AdminSidebar({ userEmail, hasMFA, onSignOut }: AdminSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const [openGroups, setOpenGroups] = useState<string[]>(["CRM", "Client Management"]);
+  const [openGroups, setOpenGroups] = useState<string[]>(["Founder Stories", "Production"]);
 
   const toggleGroup = (title: string) => {
     setOpenGroups(prev => 
@@ -89,7 +89,7 @@ export function AdminSidebar({ userEmail, hasMFA, onSignOut }: AdminSidebarProps
       <div className="p-4 border-b">
         {!collapsed && (
           <div>
-            <h2 className="text-lg font-bold">NVision CRM</h2>
+            <h2 className="text-lg font-bold">Eric's Studio</h2>
             <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
           </div>
         )}

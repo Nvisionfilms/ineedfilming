@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Users, Briefcase, TrendingUp, Clock, CheckCircle, Target, Video, Film, Clapperboard } from "lucide-react";
+import { DollarSign, Users, Briefcase, TrendingUp, Clock, CheckCircle, Target, Video, Film, Clapperboard, Plus, Upload, MessageSquare as MessageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
@@ -113,9 +114,27 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Eric's Studio Dashboard</h1>
-        <p className="text-muted-foreground">Your founder storytelling command center.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Eric's Studio Dashboard</h1>
+          <p className="text-muted-foreground">Your founder storytelling command center.</p>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="flex gap-2">
+          <Button onClick={() => navigate("/admin/bookings")} className="gap-2">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">New Story Request</span>
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/admin/deliverables")} className="gap-2">
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">Upload Episode</span>
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/admin/messages")} className="gap-2">
+            <MessageIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Message Founder</span>
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
