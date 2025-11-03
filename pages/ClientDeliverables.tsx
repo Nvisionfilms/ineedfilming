@@ -298,9 +298,9 @@ export default function ClientDeliverables() {
       <ClientNavigation />
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Deliverables</h1>
+          <h1 className="text-3xl font-bold">Your Episodes</h1>
           <p className="text-muted-foreground mt-1">
-            Review and approve your project deliverables
+            Watch, download, and approve your founder story episodes
           </p>
         </div>
 

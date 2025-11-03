@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, Users, Briefcase, TrendingUp, Clock, CheckCircle, Target } from "lucide-react";
+import { DollarSign, Users, Briefcase, TrendingUp, Clock, CheckCircle, Target, Video, Film, Clapperboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
@@ -114,8 +114,8 @@ export default function AdminDashboard() {
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+        <h1 className="text-3xl font-bold">Eric's Studio Dashboard</h1>
+        <p className="text-muted-foreground">Your founder storytelling command center.</p>
       </div>
 
       {/* KPI Cards */}
@@ -133,8 +133,8 @@ export default function AdminDashboard() {
 
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/admin/bookings")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Founder Stories</CardTitle>
+            <Video className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBookings}</div>
@@ -146,24 +146,24 @@ export default function AdminDashboard() {
 
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/admin/projects")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Episodes in Production</CardTitle>
+            <Film className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeProjects}</div>
-            <p className="text-xs text-muted-foreground">In production</p>
+            <p className="text-xs text-muted-foreground">Currently filming/editing</p>
           </CardContent>
         </Card>
 
         <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/admin/pipeline")}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Pipeline Value</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <Clapperboard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${stats.pipelineValue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.pipelineOpportunities} opportunities
+              {stats.pipelineOpportunities} founder leads
             </p>
           </CardContent>
         </Card>

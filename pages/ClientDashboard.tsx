@@ -115,26 +115,31 @@ const ClientDashboard = () => {
       
       <div className="p-4 md:p-8">
         <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome Back</h1>
-          <p className="text-muted-foreground mt-1">
-            {data.account.company_name || "Client Portal"}
+        <div className="space-y-3">
+          <h1 className="text-3xl font-bold">Your Founder Story Dashboard</h1>
+          <p className="text-muted-foreground">
+            {data.account.company_name || "Your Company"}
           </p>
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Hey there!</span> This is your command center for tracking your founder reality series. I'll keep you updated on every step of the journey. - Eric
+            </p>
+          </div>
         </div>
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Project</CardTitle>
-              <FolderOpen className="w-4 h-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Your Series</CardTitle>
+              <Video className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {data.project ? "1" : "0"}
               </div>
               <p className="text-xs text-muted-foreground">
-                {data.project?.project_name || "No project assigned"}
+                {data.project?.project_name || "No series started yet"}
               </p>
             </CardContent>
           </Card>
