@@ -1,7 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, TrendingUp, Users, DollarSign, Target, Zap, CheckCircle } from "lucide-react";
+import { ArrowRight, TrendingUp, Users, DollarSign, Target, Zap, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const caseStudies = [
   {
@@ -79,6 +82,34 @@ const caseStudies = [
 ];
 
 const CaseStudiesSection = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start" },
+    [Autoplay({ delay: 6000, stopOnInteraction: true })]
+  );
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+  }, [emblaApi, onSelect]);
+
   return (
     <section className="py-24 px-4 bg-gradient-to-b from-background via-primary/5 to-background">
       <div className="max-w-7xl mx-auto">
@@ -96,13 +127,13 @@ const CaseStudiesSection = () => {
           </p>
         </div>
 
-        {/* Case Studies Grid */}
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          {caseStudies.map((study, index) => (
-            <Card 
-              key={index} 
-              className="p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-primary/10 hover:border-primary/30"
-            >
+        {/* Case Studies Carousel */}
+        <div className="relative mb-12">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-6">
+              {caseStudies.map((study, index) => (
+                <div key={index} className="flex-[0_0_100%] min-w-0 md:flex-[0_0_50%] pl-6 first:pl-0">
+                  <Card className="p-6 hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/30 h-full">
               {/* Header */}
               <div className="mb-4">
                 <div className="flex items-start justify-between mb-2">
@@ -152,8 +183,33 @@ const CaseStudiesSection = () => {
                 <p className="text-xs font-semibold mb-1">Founder Takeaway:</p>
                 <p className="text-sm text-muted-foreground italic">{study.takeaway}</p>
               </div>
-            </Card>
-          ))}
+                  </Card>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Carousel Navigation */}
+          <div className="flex justify-center gap-4 mt-8">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={scrollPrev}
+              disabled={!canScrollPrev}
+              className="rounded-full"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={scrollNext}
+              disabled={!canScrollNext}
+              className="rounded-full"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Final CTA */}
