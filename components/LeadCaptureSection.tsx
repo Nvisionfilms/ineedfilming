@@ -40,20 +40,19 @@ const LeadCaptureSection = () => {
   const { toast } = useToast();
   
   const getMoodLabel = (value: number) => {
-    if (value <= 20) return "Aspirational";
-    if (value <= 40) return "Problem-Solution";
-    if (value <= 60) return "Empathetic";
-    if (value <= 80) return "Authoritative";
-    return "Inspirational";
+    if (value <= 20) return "Gritty & Raw";
+    if (value <= 40) return "Authentic";
+    if (value <= 60) return "Balanced";
+    if (value <= 80) return "Polished";
+    return "Polished & Inspiring";
   };
   
   const getGenreLabel = (value: number) => {
-    if (value <= 16) return "Pop";
-    if (value <= 33) return "Hip-Hop";
-    if (value <= 50) return "Rock";
-    if (value <= 67) return "Country";
-    if (value <= 84) return "Electronic";
-    return "Other";
+    if (value <= 20) return "Documentary";
+    if (value <= 40) return "Docu-Style";
+    if (value <= 60) return "Hybrid";
+    if (value <= 80) return "Cinematic";
+    return "Full Cinematic";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
