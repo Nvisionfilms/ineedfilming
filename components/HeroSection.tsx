@@ -14,10 +14,10 @@ const HeroSection = () => {
         <div className="container mx-auto px-4 sm:px-6 py-4 md:py-5">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center">
             <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 font-bold text-xs whitespace-nowrap">
-              EPISODIC MARKETING
+              FOUNDER REALITY SERIES
             </Badge>
             <p className="text-xs sm:text-sm md:text-base text-foreground/90 max-w-4xl leading-relaxed px-2">
-              Turn your brand into a series people actually want to follow—authentic episodes that build connection over time.
+              I turn founders into main characters—reality-style episodes that people actually want to watch.
             </p>
           </div>
         </div>
@@ -39,18 +39,18 @@ const HeroSection = () => {
         {/* Badge */}
         <Badge variant="secondary" className="mb-12 md:mb-16 inline-flex items-center w-fit mx-auto animate-float bg-card/80 backdrop-blur-sm border-2 border-primary/30 text-foreground font-semibold px-4 py-2 shadow-lg">
           <Star className="w-4 h-4 mr-2 text-accent fill-accent" />
-          100+ Founders Sharing Their Story
+          100+ Founders. Real Stories. Zero BS.
         </Badge>
         
         {/* Headline */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 md:mb-10 leading-[1.15] px-2 overflow-visible pb-4">
-          We Don't Make Commercials.
-          <span className="text-gradient block mt-2 pb-2">We Create Episodes of Your Brand.</span>
+          I Turn Founders Into
+          <span className="text-gradient block mt-2 pb-2">Main Characters.</span>
         </h1>
         
         {/* Subheadline */}
         <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-10 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4">
-          Reality-style episodic content that turns your brand journey into something people want to follow.
+          Your story deserves better than stock footage and talking heads. Let's film your founder journey like the reality show it actually is.
         </p>
         
         {/* CTA Buttons */}
@@ -62,7 +62,7 @@ const HeroSection = () => {
             onClick={() => navigate('/booking-portal')}
           >
             <CreditCard className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-            Book & Pay Now
+            Start Your Series
           </Button>
 
           <Button 
@@ -71,7 +71,7 @@ const HeroSection = () => {
             className="w-full sm:w-auto text-base md:text-lg px-6 md:px-8 py-5 md:py-6 h-auto"
             onClick={() => document.getElementById('lead-capture')?.scrollIntoView({ behavior: 'smooth' })}
           >
-            Vision Session
+            Talk to Eric
             <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
           </Button>
           
@@ -82,7 +82,7 @@ const HeroSection = () => {
             onClick={() => window.open('https://www.youtube.com/nvisionmg', '_blank')}
           >
             <Play className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-            See Our Work
+            Watch Episodes
           </Button>
         </div>
 
