@@ -26,12 +26,14 @@ import ClientFiles from "./pages/ClientFiles";
 import ClientMessages from "./pages/ClientMessages";
 import ClientSettings from "./pages/ClientSettings";
 import ClientMeetings from "./pages/ClientMeetings";
+import ClientDeliverables from "./pages/ClientDeliverables";
 import AdminClientFiles from "./pages/AdminClientFiles";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ClientProtectedRoute } from "./components/client/ClientProtectedRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminClients from "./pages/AdminClients";
 import AdminFiles from "./pages/AdminFiles";
+import AdminEpisodePlanner from "./pages/AdminEpisodePlanner";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +93,14 @@ const App = () => (
               </ClientProtectedRoute>
             }
           />
+          <Route
+            path="/client/deliverables"
+            element={
+              <ClientProtectedRoute>
+                <ClientDeliverables />
+              </ClientProtectedRoute>
+            }
+          />
           
           {/* Admin Routes with Sidebar Layout */}
           <Route
@@ -108,6 +118,7 @@ const App = () => (
             <Route path="meetings" element={<AdminMeetings />} />
             <Route path="messages" element={<AdminMessages />} />
             <Route path="projects" element={<AdminProjects />} />
+            <Route path="episode-planner" element={<AdminEpisodePlanner />} />
             <Route path="clients" element={<AdminClients />} />
             <Route path="clients/:clientId/files" element={<AdminClientFiles />} />
             <Route path="files" element={<AdminFiles />} />
