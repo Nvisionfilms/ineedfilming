@@ -171,14 +171,23 @@ const AdminBookings = () => {
 
     setIsProcessing(true);
     try {
-      const { error } = await supabase.functions.invoke("approve-custom-booking", {
-        body: {
-          bookingId: selectedBooking.id,
-          action,
-          counterPrice: counterPrice ? parseFloat(counterPrice) : null,
-          adminNotes,
-        },
-      });
+      // Direct database update - no Edge Function needed
+      const updateData: any = {
+        status: action === "approve" ? "approved" : action === "reject" ? "rejected" : "countered",
+        admin_notes: adminNotes,
+      };
+
+      if (action === "approve") {
+        updateData.approved_price = counterPrice ? parseFloat(counterPrice) : selectedBooking.requested_price;
+        updateData.approved_at = new Date().toISOString();
+      } else if (action === "counter") {
+        updateData.counter_price = parseFloat(counterPrice);
+      }
+
+      const { error } = await supabase
+        .from("custom_booking_requests")
+        .update(updateData)
+        .eq("id", selectedBooking.id);
 
       if (error) throw error;
 

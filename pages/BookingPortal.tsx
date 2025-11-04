@@ -210,20 +210,21 @@ const BookingPortal = () => {
   const submitCustomBookingRequest = async () => {
     setIsProcessing(true);
     try {
-      const { error } = await supabase.functions.invoke("submit-custom-booking", {
-        body: {
-          clientName: formData.name,
-          clientEmail: formData.email,
-          clientPhone: formData.phone,
-          clientCompany: formData.company,
-          clientType: formData.clientType,
-          requestedPrice: parseFloat(customPrice),
-          depositAmount: calculateDeposit(parseFloat(customPrice)),
-          projectDetails: formData.projectDetails,
-          bookingDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
-          bookingTime: selectedTime,
-        }
-      });
+      // Direct database insert
+      const { error } = await supabase
+        .from('custom_booking_requests')
+        .insert({
+          client_name: formData.name,
+          client_email: formData.email,
+          client_phone: formData.phone,
+          client_company: formData.company,
+          client_type: formData.clientType,
+          requested_price: parseFloat(customPrice),
+          deposit_amount: calculateDeposit(parseFloat(customPrice)),
+          project_details: formData.projectDetails,
+          booking_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+          booking_time: selectedTime,
+        });
 
       if (error) throw error;
 
@@ -260,7 +261,35 @@ const BookingPortal = () => {
 
     setIsProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+      // TODO: Integrate Stripe payment - for now, create booking without payment
+      toast({
+        title: "Payment Integration Coming Soon",
+        description: "Your booking request has been submitted. We'll contact you for payment details.",
+      });
+      
+      // Create booking request
+      const { error } = await supabase
+        .from('custom_booking_requests')
+        .insert({
+          client_name: formData.name,
+          client_email: formData.email,
+          client_phone: formData.phone,
+          client_company: formData.company,
+          client_type: formData.clientType,
+          requested_price: paymentAmount,
+          deposit_amount: calculateDeposit(paymentAmount),
+          project_details: `Package: ${selectedPkg?.name}\n${formData.projectDetails}`,
+          booking_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+          booking_time: selectedTime,
+        });
+      
+      if (error) throw error;
+      navigate("/booking-success");
+      setIsProcessing(false);
+      return;
+      
+      // Original payment code (disabled)
+      const { data, error: paymentError } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           packageId: selectedPackage,
           packageName: selectedPkg?.name,
