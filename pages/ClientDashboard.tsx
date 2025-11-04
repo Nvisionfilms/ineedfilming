@@ -11,6 +11,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { StorageUpgradeDialog } from "@/components/StorageUpgradeDialog";
 import { ClientNavigation } from "@/components/client/ClientNavigation";
 import { ProjectProgressTracker } from "@/components/ProjectProgressTracker";
+import { MeetingsCalendar } from "@/components/MeetingsCalendar";
 
 interface ClientData {
   account: any;
@@ -321,6 +322,9 @@ const ClientDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Meetings Calendar */}
+        <MeetingsCalendar userRole="client" clientId={data?.account?.id} />
         </div>
       </div>
     </div>

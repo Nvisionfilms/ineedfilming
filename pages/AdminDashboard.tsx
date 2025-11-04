@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, Users, Briefcase, TrendingUp, Clock, CheckCircle, Target, Video, Film, Clapperboard, Plus, Upload, MessageSquare as MessageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { MeetingsCalendar } from "@/components/MeetingsCalendar";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -275,6 +276,9 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Meetings Calendar */}
+      <MeetingsCalendar userRole="admin" />
     </div>
   );
 }
