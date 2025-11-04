@@ -139,8 +139,8 @@ const AdminBookings = () => {
       if (error) throw error;
       // Filter out meetings with invalid dates
       const validMeetings = (data || []).filter(m => {
-        if (!m.scheduled_date) return false;
-        const date = new Date(m.scheduled_date);
+        if (!m.scheduled_at) return false;
+        const date = new Date(m.scheduled_at);
         return !isNaN(date.getTime());
       });
       setMeetings(validMeetings);
