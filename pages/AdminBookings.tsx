@@ -110,18 +110,42 @@ const AdminBookings = () => {
   };
 
   const loadProjects = async () => {
-    const { data } = await supabase.from("projects").select("*");
-    if (data) setProjects(data);
+    try {
+      const { data, error } = await supabase.from("projects").select("*");
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error("Error loading projects:", error);
+      setProjects([]);
+    }
   };
 
   const loadClientAccounts = async () => {
-    const { data } = await supabase.from("client_accounts").select("*");
-    if (data) setClientAccounts(data);
+    try {
+      const { data, error } = await supabase.from("client_accounts").select("*");
+      if (error) throw error;
+      setClientAccounts(data || []);
+    } catch (error) {
+      console.error("Error loading client accounts:", error);
+      setClientAccounts([]);
+    }
   };
 
   const loadMeetings = async () => {
-    const { data } = await supabase.from("meetings").select("*");
-    if (data) setMeetings(data);
+    try {
+      const { data, error } = await supabase.from("meetings").select("*");
+      if (error) throw error;
+      // Filter out meetings with invalid dates
+      const validMeetings = (data || []).filter(m => {
+        if (!m.scheduled_date) return false;
+        const date = new Date(m.scheduled_date);
+        return !isNaN(date.getTime());
+      });
+      setMeetings(validMeetings);
+    } catch (error) {
+      console.error("Error loading meetings:", error);
+      setMeetings([]);
+    }
   };
 
   const getMeetingsForBooking = (bookingId: string) => {
