@@ -415,7 +415,7 @@ const AdminBookings = () => {
           client_id: null, // Will be linked when client account is created
           title: meetingData.title,
           description: meetingData.description || `Meeting for ${selectedBookingForMeeting.client_name} booking`,
-          scheduled_date: scheduledDateTime.toISOString(),
+          scheduled_at: scheduledDateTime.toISOString(),
           duration_minutes: meetingData.durationMinutes,
           meeting_link: meetingData.meetingLink,
           meeting_type: 'discovery',
