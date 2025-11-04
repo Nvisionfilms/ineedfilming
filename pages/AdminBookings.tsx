@@ -829,10 +829,25 @@ const AdminBookings = () => {
                       setSelectedBookingForMeeting(booking);
                       // Auto-populate with booking's preferred date and time
                       const bookingDate = new Date(booking.booking_date);
+                      // Convert 12-hour time to 24-hour format for HTML time input
+                      let time24 = "09:00";
+                      if (booking.booking_time) {
+                        const match = booking.booking_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                        if (match) {
+                          let hours = parseInt(match[1]);
+                          const minutes = match[2];
+                          const period = match[3].toUpperCase();
+                          if (period === 'PM' && hours !== 12) hours += 12;
+                          if (period === 'AM' && hours === 12) hours = 0;
+                          time24 = `${hours.toString().padStart(2, '0')}:${minutes}`;
+                        } else {
+                          time24 = booking.booking_time; // Already in 24-hour format
+                        }
+                      }
                       setMeetingData({
                         title: `Strategy Call - ${booking.client_name}`,
                         date: bookingDate,
-                        time: booking.booking_time || "09:00",
+                        time: time24,
                         durationMinutes: 30,
                         meetingLink: "",
                         description: `Discuss ${booking.project_details?.substring(0, 100) || "project requirements"}`,
@@ -938,10 +953,25 @@ const AdminBookings = () => {
                       setSelectedBookingForMeeting(booking);
                       // Auto-populate with booking's preferred date and time
                       const bookingDate = new Date(booking.booking_date);
+                      // Convert 12-hour time to 24-hour format for HTML time input
+                      let time24 = "09:00";
+                      if (booking.booking_time) {
+                        const match = booking.booking_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                        if (match) {
+                          let hours = parseInt(match[1]);
+                          const minutes = match[2];
+                          const period = match[3].toUpperCase();
+                          if (period === 'PM' && hours !== 12) hours += 12;
+                          if (period === 'AM' && hours === 12) hours = 0;
+                          time24 = `${hours.toString().padStart(2, '0')}:${minutes}`;
+                        } else {
+                          time24 = booking.booking_time; // Already in 24-hour format
+                        }
+                      }
                       setMeetingData({
                         title: `Strategy Call - ${booking.client_name}`,
                         date: bookingDate,
-                        time: booking.booking_time || "09:00",
+                        time: time24,
                         durationMinutes: 30,
                         meetingLink: "",
                         description: `Discuss ${booking.project_details?.substring(0, 100) || "project requirements"}`,
