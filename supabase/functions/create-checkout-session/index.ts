@@ -16,11 +16,22 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { packageId, packageName, amount, paymentType, bookingDetails } = await req.json();
+    const { packageId, packageName, amount, paymentType, bookingDetails, countdownExpiry } = await req.json();
 
     console.log('Creating checkout session for:', { packageId, amount, paymentType });
 
+    // Validate countdown timer hasn't expired
+    if (countdownExpiry) {
+      const expiryDate = new Date(countdownExpiry);
+      const now = new Date();
+      
+      if (now > expiryDate) {
+        throw new Error('Limited time offer has expired. Please refresh the page.');
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
+      expires_at: countdownExpiry ? Math.floor(new Date(countdownExpiry).getTime() / 1000) : undefined,
       payment_method_types: ['card'],
       line_items: [
         {

@@ -101,6 +101,26 @@ const BookingPortal = () => {
     setIsExpired(true);
   };
 
+  const getCountdownExpiry = () => {
+    const STORAGE_KEY = "nvision_countdown_v2";
+    const stored = localStorage.getItem(STORAGE_KEY);
+    
+    if (stored) {
+      const storedDate = new Date(stored);
+      const endDate = new Date(storedDate);
+      endDate.setDate(endDate.getDate() + 7);
+      endDate.setHours(23, 59, 59, 999);
+      return endDate.toISOString();
+    }
+    
+    // Fallback: 7 days from now
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setDate(endDate.getDate() + 7);
+    endDate.setHours(23, 59, 59, 999);
+    return endDate.toISOString();
+  };
+
   const loadApprovedBooking = async () => {
     try {
       const { data, error } = await supabase
@@ -261,6 +281,17 @@ const BookingPortal = () => {
 
     setIsProcessing(true);
     try {
+      // Check if offer has expired
+      if (isExpired) {
+        toast({
+          title: "Offer Expired",
+          description: "This limited time offer has expired. Please refresh the page.",
+          variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       // Create Stripe checkout session
       const { data, error: paymentError } = await supabase.functions.invoke('create-checkout-session', {
         body: {
@@ -268,6 +299,7 @@ const BookingPortal = () => {
           packageName: selectedPkg?.name,
           amount: paymentAmount,
           paymentType,
+          countdownExpiry: getCountdownExpiry(),
           bookingDetails: {
             date: selectedDate ? format(selectedDate, 'PPP') : '',
             time: selectedTime,
