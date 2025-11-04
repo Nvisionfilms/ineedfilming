@@ -115,20 +115,16 @@ const AdminLogin = () => {
           return;
         }
 
-        // CRITICAL SECURITY: No verified 2FA - block access
-        await supabase.auth.signOut();
-        
-        // Log failed login attempt (no MFA)
-        await supabase.from("failed_login_attempts" as any).insert({
-          email,
-          reason: "2FA not configured",
-        });
-        
+        // TEMPORARY: Allow login without 2FA for initial setup
+        // TODO: Re-enable 2FA requirement after initial admin setup
         toast({
-          title: "2FA Required",
-          description: "This admin account requires two-factor authentication. Contact system administrator.",
-          variant: "destructive",
+          title: "Warning: 2FA Not Enabled",
+          description: "Please enable 2FA in your account settings for security.",
+          variant: "default",
         });
+        
+        // Continue with login
+        await completeSignIn(data.user.id);
         setIsLoading(false);
         return;
       }
