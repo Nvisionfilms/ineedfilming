@@ -46,18 +46,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return;
       }
 
-      // CRITICAL SECURITY: Check for verified 2FA
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const hasVerifiedMFA = factors?.totp?.some(f => f.status === 'verified');
-
-      if (!hasVerifiedMFA) {
-        // No verified 2FA - sign out and block access
-        await supabase.auth.signOut();
-        setIsAdmin(false);
-        setIsLoading(false);
-        return;
-      }
-
+      // TEMPORARY: Allow access without 2FA for initial setup
+      // TODO: Re-enable 2FA requirement after admin sets up 2FA
+      
       setIsAdmin(true);
     } catch (error) {
       console.error("Error checking admin access:", error);
