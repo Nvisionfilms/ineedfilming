@@ -63,10 +63,6 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
           custom_booking_requests (
             client_name,
             client_email
-          ),
-          client_accounts (
-            full_name,
-            email
           )
         `)
         .eq('status', 'scheduled')
@@ -95,10 +91,7 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
     if (meeting.custom_booking_requests) {
       return meeting.custom_booking_requests.client_name;
     }
-    if (meeting.client_accounts) {
-      return meeting.client_accounts.full_name;
-    }
-    return "Unknown Client";
+    return "Client";
   };
 
   const getStatusColor = (status: string) => {

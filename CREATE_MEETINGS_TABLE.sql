@@ -49,7 +49,8 @@ USING (
   )
 );
 
--- Create trigger for updated_at
+-- Create trigger for updated_at (drop first if exists)
+DROP TRIGGER IF EXISTS update_meetings_updated_at ON public.meetings;
 CREATE TRIGGER update_meetings_updated_at
 BEFORE UPDATE ON public.meetings
 FOR EACH ROW
