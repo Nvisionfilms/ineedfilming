@@ -9,7 +9,7 @@ import { Clock, Video, User } from "lucide-react";
 interface Meeting {
   id: string;
   title: string;
-  scheduled_date: string;
+  scheduled_at: string;
   duration_minutes: number;
   meeting_link: string | null;
   status: string;
@@ -44,8 +44,8 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
   useEffect(() => {
     if (date && meetings.length > 0) {
       const dayMeetings = meetings.filter(meeting => {
-        if (!meeting.scheduled_date) return false;
-        const meetingDate = new Date(meeting.scheduled_date);
+        if (!meeting.scheduled_at) return false;
+        const meetingDate = new Date(meeting.scheduled_at);
         if (isNaN(meetingDate.getTime())) return false;
         return isSameDay(meetingDate, date);
       });
@@ -69,7 +69,7 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
           )
         `)
         .eq('status', 'scheduled')
-        .order('scheduled_date', { ascending: true });
+        .order('scheduled_at', { ascending: true });
 
       // If client role, filter by client_id
       if (userRole === 'client' && clientId) {
@@ -89,8 +89,8 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
 
   // Get dates that have meetings for highlighting (filter out invalid dates)
   const meetingDates = meetings
-    .filter(m => m.scheduled_date && !isNaN(new Date(m.scheduled_date).getTime()))
-    .map(m => new Date(m.scheduled_date));
+    .filter(m => m.scheduled_at && !isNaN(new Date(m.scheduled_at).getTime()))
+    .map(m => new Date(m.scheduled_at));
 
   const getClientName = (meeting: Meeting) => {
     if (meeting.custom_booking_requests) {
@@ -195,7 +195,7 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
                 <div className="flex flex-col gap-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Clock className="w-4 h-4" />
-                    {format(new Date(meeting.scheduled_date), 'h:mm a')} 
+                    {format(new Date(meeting.scheduled_at), 'h:mm a')} 
                     <span className="text-xs">
                       ({meeting.duration_minutes} min)
                     </span>
