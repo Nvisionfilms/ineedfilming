@@ -164,13 +164,20 @@ export default function AdminProjects() {
     }
 
     try {
-      const { error } = await supabase.functions.invoke("create-meeting", {
-        body: {
-          projectId: selectedProject.id,
-          clientId: clientAccount.id,
-          ...meetingForm
-        }
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('meetings')
+        .insert({
+          project_id: selectedProject.id,
+          client_id: clientAccount.id,
+          title: meetingForm.title,
+          description: meetingForm.description,
+          scheduled_date: meetingForm.scheduledAt,
+          duration_minutes: meetingForm.durationMinutes,
+          meeting_type: 'planning',
+          created_by: user?.id,
+        });
 
       if (error) throw error;
 

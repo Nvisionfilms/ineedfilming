@@ -202,19 +202,9 @@ const AdminClients = () => {
         if (error) throw error;
       }
 
-      // Send notification about account update
-      await supabase.functions.invoke("send-client-notification", {
-        body: {
-          clientEmail: selectedExistingClient.profiles?.email,
-          clientName: selectedExistingClient.profiles?.full_name || "Client",
-          type: "account_update",
-          details: {
-            message: "Your account has been updated with new project or booking information.",
-            updatedFields: Object.keys(updateData)
-          }
-        }
-      });
-
+      // TODO: Send notification email (requires email service integration)
+      // For now, skip email notification
+      
       toast.success("Existing client linked successfully");
       resetCreateDialog();
       fetchData();
@@ -233,25 +223,34 @@ const AdminClients = () => {
 
     setCreating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase.functions.invoke("create-client-account", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          email: newClient.email,
-          password: newClient.password,
+      // Step 1: Create auth user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newClient.email,
+        password: newClient.password,
+        email_confirm: true,
+        user_metadata: {
           full_name: newClient.full_name,
+        }
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Failed to create user");
+
+      // Step 2: Create client account record
+      const { error: clientError } = await supabase
+        .from('client_accounts')
+        .insert({
+          user_id: authData.user.id,
           company_name: newClient.company_name,
           project_id: newClient.project_id || null,
           booking_id: newClient.booking_id || null,
-        },
-      });
+        });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (clientError) {
+        // Rollback: delete auth user if client account creation fails
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw clientError;
+      }
 
       toast.success("Client account created successfully");
       resetCreateDialog();
@@ -414,12 +413,13 @@ const AdminClients = () => {
 
     setResendingConfirmation(true);
     try {
-      const { data, error } = await supabase.functions.invoke("resend-confirmation-email", {
-        body: { email: resendEmail },
+      // Use Supabase auth resend
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: resendEmail,
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
       toast.success("Confirmation email resent successfully");
       setResendEmail("");

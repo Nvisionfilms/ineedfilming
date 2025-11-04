@@ -224,27 +224,29 @@ export default function AdminPipeline() {
       
       console.log("📅 Scheduled date/time:", scheduledDateTime.toISOString());
       
-      const { data, error } = await supabase.functions.invoke("create-meeting", {
-        body: {
-          projectId: null, // No project yet for opportunities
-          clientId: null, // No client account yet
-          opportunityId: selectedOpportunity.id,
-          clientEmail: selectedOpportunity.contact_email,
-          clientName: selectedOpportunity.contact_name,
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('meetings')
+        .insert({
+          project_id: null,
+          client_id: null,
+          booking_id: null,
           title: meetingData.title,
           description: meetingData.description || `Meeting with ${selectedOpportunity.contact_name} - ${selectedOpportunity.service_type}`,
-          scheduledAt: scheduledDateTime.toISOString(),
-          durationMinutes: meetingData.durationMinutes,
-          meetingLink: meetingData.meetingLink,
-        },
-      });
+          scheduled_date: scheduledDateTime.toISOString(),
+          duration_minutes: meetingData.durationMinutes,
+          meeting_link: meetingData.meetingLink,
+          meeting_type: 'discovery',
+          created_by: user?.id,
+        });
 
       if (error) {
-        console.error("❌ Edge function error:", error);
+        console.error("❌ Database error:", error);
         throw error;
       }
 
-      console.log("✅ Meeting created with opportunity link:", data);
+      console.log("✅ Meeting created for opportunity");
 
       toast({
         title: "Meeting scheduled!",

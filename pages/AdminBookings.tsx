@@ -368,21 +368,23 @@ const AdminBookings = () => {
         .eq("booking_id", selectedBookingForMeeting.id)
         .maybeSingle();
 
-      const { data, error } = await supabase.functions.invoke("create-meeting", {
-        body: {
-          bookingId: selectedBookingForMeeting.id,
-          projectId: null,
-          clientId: clientAccount?.id || null,
-          opportunityId: opportunity?.id || null,
-          clientEmail: selectedBookingForMeeting.client_email,
-          clientName: selectedBookingForMeeting.client_name,
+      // Direct database insert for meeting
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('meetings')
+        .insert({
+          booking_id: selectedBookingForMeeting.id,
+          project_id: null,
+          client_id: clientAccount?.id || null,
           title: meetingData.title,
           description: meetingData.description || `Meeting for ${selectedBookingForMeeting.client_name} booking`,
-          scheduledAt: scheduledDateTime.toISOString(),
-          durationMinutes: meetingData.durationMinutes,
-          meetingLink: meetingData.meetingLink,
-        },
-      });
+          scheduled_date: scheduledDateTime.toISOString(),
+          duration_minutes: meetingData.durationMinutes,
+          meeting_link: meetingData.meetingLink,
+          meeting_type: 'discovery',
+          created_by: user?.id,
+        });
 
       if (error) throw error;
 

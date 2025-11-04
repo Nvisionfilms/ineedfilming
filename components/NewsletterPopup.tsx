@@ -54,27 +54,27 @@ const NewsletterPopup = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("submit-newsletter", {
-        body: {
+      // Direct database insert
+      const { error } = await supabase
+        .from('newsletter_subscribers')
+        .insert({
           email: email.toLowerCase().trim(),
           name: name.trim() || null,
           source: "exit_popup",
           metadata: {
             subscribed_from: window.location.pathname,
-            user_agent: navigator.userAgent,
           },
-        },
-      });
+        });
 
       if (error) {
-        throw error;
-      }
-
-      if (data?.alreadySubscribed) {
-        toast({
-          title: "Already subscribed!",
-          description: "You're already on our list. Check your inbox for updates!",
-        });
+        if (error.code === '23505') { // Unique constraint violation
+          toast({
+            title: "Already subscribed!",
+            description: "You're already on our list!",
+          });
+        } else {
+          throw error;
+        }
       } else {
         toast({
           title: "Welcome to the community! 🎉",
