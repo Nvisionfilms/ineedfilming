@@ -43,9 +43,12 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
 
   useEffect(() => {
     if (date && meetings.length > 0) {
-      const dayMeetings = meetings.filter(meeting => 
-        isSameDay(new Date(meeting.scheduled_date), date)
-      );
+      const dayMeetings = meetings.filter(meeting => {
+        if (!meeting.scheduled_date) return false;
+        const meetingDate = new Date(meeting.scheduled_date);
+        if (isNaN(meetingDate.getTime())) return false;
+        return isSameDay(meetingDate, date);
+      });
       setSelectedDayMeetings(dayMeetings);
     } else {
       setSelectedDayMeetings([]);
@@ -84,8 +87,10 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
     }
   };
 
-  // Get dates that have meetings for highlighting
-  const meetingDates = meetings.map(m => new Date(m.scheduled_date));
+  // Get dates that have meetings for highlighting (filter out invalid dates)
+  const meetingDates = meetings
+    .filter(m => m.scheduled_date && !isNaN(new Date(m.scheduled_date).getTime()))
+    .map(m => new Date(m.scheduled_date));
 
   const getClientName = (meeting: Meeting) => {
     if (meeting.custom_booking_requests) {
