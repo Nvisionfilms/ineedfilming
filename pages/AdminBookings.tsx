@@ -382,9 +382,27 @@ const AdminBookings = () => {
     }
 
     try {
-      const [hours, minutes] = meetingData.time.split(':');
+      // Parse 12-hour time format (e.g., "2:00 PM")
+      const match = meetingData.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (!match) {
+        toast({
+          title: "Invalid time format",
+          description: "Please use format like '9:00 AM' or '2:30 PM'",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const period = match[3].toUpperCase();
+      
+      // Convert to 24-hour format
+      if (period === 'PM' && hours !== 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
+      
       const scheduledDateTime = new Date(meetingData.date);
-      scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      scheduledDateTime.setHours(hours, minutes, 0, 0);
 
       // Direct database insert for meeting
       const { data: { user } } = await supabase.auth.getUser();
@@ -831,25 +849,10 @@ const AdminBookings = () => {
                       setSelectedBookingForMeeting(booking);
                       // Auto-populate with booking's preferred date and time
                       const bookingDate = new Date(booking.booking_date);
-                      // Convert 12-hour time to 24-hour format for HTML time input
-                      let time24 = "09:00";
-                      if (booking.booking_time) {
-                        const match = booking.booking_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                        if (match) {
-                          let hours = parseInt(match[1]);
-                          const minutes = match[2];
-                          const period = match[3].toUpperCase();
-                          if (period === 'PM' && hours !== 12) hours += 12;
-                          if (period === 'AM' && hours === 12) hours = 0;
-                          time24 = `${hours.toString().padStart(2, '0')}:${minutes}`;
-                        } else {
-                          time24 = booking.booking_time; // Already in 24-hour format
-                        }
-                      }
                       setMeetingData({
                         title: `Strategy Call - ${booking.client_name}`,
                         date: bookingDate,
-                        time: time24,
+                        time: booking.booking_time || "9:00 AM",
                         durationMinutes: 30,
                         meetingLink: "",
                         description: `Discuss ${booking.project_details?.substring(0, 100) || "project requirements"}`,
@@ -955,25 +958,10 @@ const AdminBookings = () => {
                       setSelectedBookingForMeeting(booking);
                       // Auto-populate with booking's preferred date and time
                       const bookingDate = new Date(booking.booking_date);
-                      // Convert 12-hour time to 24-hour format for HTML time input
-                      let time24 = "09:00";
-                      if (booking.booking_time) {
-                        const match = booking.booking_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                        if (match) {
-                          let hours = parseInt(match[1]);
-                          const minutes = match[2];
-                          const period = match[3].toUpperCase();
-                          if (period === 'PM' && hours !== 12) hours += 12;
-                          if (period === 'AM' && hours === 12) hours = 0;
-                          time24 = `${hours.toString().padStart(2, '0')}:${minutes}`;
-                        } else {
-                          time24 = booking.booking_time; // Already in 24-hour format
-                        }
-                      }
                       setMeetingData({
                         title: `Strategy Call - ${booking.client_name}`,
                         date: bookingDate,
-                        time: time24,
+                        time: booking.booking_time || "9:00 AM",
                         durationMinutes: 30,
                         meetingLink: "",
                         description: `Discuss ${booking.project_details?.substring(0, 100) || "project requirements"}`,
@@ -1164,11 +1152,13 @@ const AdminBookings = () => {
               <Label htmlFor="meeting-time">Time *</Label>
               <Input
                 id="meeting-time"
-                type="time"
+                type="text"
+                placeholder="e.g. 2:00 PM"
                 value={meetingData.time}
                 onChange={(e) => setMeetingData({ ...meetingData, time: e.target.value })}
                 required
               />
+              <p className="text-xs text-muted-foreground mt-1">Use 12-hour format (e.g. 9:00 AM, 2:30 PM)</p>
             </div>
             <div>
               <Label htmlFor="meeting-duration">Duration (minutes)</Label>
