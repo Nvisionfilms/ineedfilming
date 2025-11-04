@@ -37,6 +37,8 @@ const AdminBookings = () => {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [isMeetingDialogOpen, setIsMeetingDialogOpen] = useState(false);
   const [selectedBookingForMeeting, setSelectedBookingForMeeting] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedBookingForDelete, setSelectedBookingForDelete] = useState<any>(null);
   const [meetingData, setMeetingData] = useState({
     title: "",
     date: undefined as Date | undefined,
@@ -332,14 +334,16 @@ const AdminBookings = () => {
     }
   };
 
-  const handleDelete = async (bookingId: string) => {
+  const handleDelete = async () => {
+    if (!selectedBookingForDelete) return;
+    
     setIsProcessing(true);
     try {
       // First, remove the booking reference from any projects
       const { error: projectError } = await supabase
         .from("projects")
         .update({ booking_id: null })
-        .eq("booking_id", bookingId);
+        .eq("booking_id", selectedBookingForDelete.id);
       
       if (projectError) throw projectError;
 
@@ -347,7 +351,7 @@ const AdminBookings = () => {
       const { error } = await supabase
         .from("custom_booking_requests")
         .delete()
-        .eq("id", bookingId);
+        .eq("id", selectedBookingForDelete.id);
         
       if (error) throw error;
 
@@ -357,7 +361,8 @@ const AdminBookings = () => {
       });
       
       // Close dialog and reload
-      setSelectedBooking(null);
+      setIsDeleteDialogOpen(false);
+      setSelectedBookingForDelete(null);
       await loadBookings();
     } catch (error: any) {
       toast({
@@ -1073,7 +1078,15 @@ const AdminBookings = () => {
                   </DialogContent>
                 </Dialog>
 
-                <Dialog>
+                <Dialog open={isDeleteDialogOpen && selectedBookingForDelete?.id === booking.id} onOpenChange={(open) => {
+                  if (open) {
+                    setSelectedBookingForDelete(booking);
+                    setIsDeleteDialogOpen(true);
+                  } else {
+                    setIsDeleteDialogOpen(false);
+                    setSelectedBookingForDelete(null);
+                  }
+                }}>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="flex-1 text-destructive hover:text-destructive">
                       <Trash2 className="w-4 h-4 mr-2" />
@@ -1088,10 +1101,13 @@ const AdminBookings = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex gap-3 justify-end mt-4">
-                      <Button variant="outline" onClick={() => {}}>Cancel</Button>
-                      <Button variant="destructive" onClick={() => handleDelete(booking.id)}>
+                      <Button variant="outline" onClick={() => {
+                        setIsDeleteDialogOpen(false);
+                        setSelectedBookingForDelete(null);
+                      }}>Cancel</Button>
+                      <Button variant="destructive" onClick={handleDelete} disabled={isProcessing}>
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Permanently
+                        {isProcessing ? "Deleting..." : "Delete Permanently"}
                       </Button>
                     </div>
                   </DialogContent>
