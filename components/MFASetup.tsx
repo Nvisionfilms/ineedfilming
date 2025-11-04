@@ -63,6 +63,39 @@ export const MFASetup = () => {
     }
   };
 
+  const removeAllFactors = async () => {
+    if (!confirm("Are you sure? This will disable 2FA on your account. You'll need to set it up again.")) {
+      return;
+    }
+
+    setIsRemoving(true);
+    try {
+      for (const factor of existingFactors) {
+        const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        if (error) throw error;
+      }
+
+      toast({
+        title: "2FA Disabled",
+        description: "All 2FA factors removed. You can now set up fresh from production.",
+      });
+
+      setQrCode(null);
+      setSecret(null);
+      setFactorId(null);
+      setVerifyCode("");
+      await checkExistingFactors();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Removal Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
   const enrollMFA = async () => {
     setIsEnrolling(true);
     try {
@@ -199,6 +232,7 @@ export const MFASetup = () => {
   }
 
   const hasUnverified = existingFactors.some(f => f.status === "unverified");
+  const hasVerified = existingFactors.some(f => f.status === "verified");
 
   return (
     <Card>
@@ -237,8 +271,38 @@ export const MFASetup = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {hasVerified && (
+          <Alert>
+            <AlertDescription className="flex flex-col gap-2">
+              <span>✅ 2FA is currently enabled on your account</span>
+              <span className="text-sm text-muted-foreground">
+                To fix the "localhost:3000" issue, disable 2FA and re-enable it from your production domain (ineedfilming.com)
+              </span>
+              <Button 
+                onClick={removeAllFactors} 
+                disabled={isRemoving}
+                variant="destructive"
+                size="sm"
+                className="w-fit"
+              >
+                {isRemoving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Removing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Disable 2FA & Reset
+                  </>
+                )}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         
-        <Button onClick={enrollMFA} disabled={isEnrolling || hasUnverified}>
+        <Button onClick={enrollMFA} disabled={isEnrolling || hasUnverified || hasVerified}>
           {isEnrolling ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
