@@ -333,39 +333,41 @@ const AdminBookings = () => {
   };
 
   const handleDelete = async (bookingId: string) => {
-    // First, remove the booking reference from any projects
-    const { error: projectError } = await supabase
-      .from("projects")
-      .update({ booking_id: null })
-      .eq("booking_id", bookingId);
-    
-    if (projectError) {
-      toast({
-        title: "Error preparing deletion",
-        description: projectError.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Now delete the booking
-    const { error } = await supabase
-      .from("custom_booking_requests")
-      .delete()
-      .eq("id", bookingId);
+    setIsProcessing(true);
+    try {
+      // First, remove the booking reference from any projects
+      const { error: projectError } = await supabase
+        .from("projects")
+        .update({ booking_id: null })
+        .eq("booking_id", bookingId);
       
-    if (error) {
+      if (projectError) throw projectError;
+
+      // Now delete the booking
+      const { error } = await supabase
+        .from("custom_booking_requests")
+        .delete()
+        .eq("id", bookingId);
+        
+      if (error) throw error;
+
+      toast({
+        title: "Booking deleted",
+        description: "The booking has been permanently removed from the system",
+      });
+      
+      // Close dialog and reload
+      setSelectedBooking(null);
+      setIsDialogOpen(false);
+      loadBookings();
+    } catch (error: any) {
       toast({
         title: "Error deleting booking",
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Booking deleted",
-        description: "The booking has been permanently removed from the system",
-      });
-      loadBookings();
+    } finally {
+      setIsProcessing(false);
     }
   };
 
