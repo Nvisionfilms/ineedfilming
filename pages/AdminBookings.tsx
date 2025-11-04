@@ -360,19 +360,6 @@ const AdminBookings = () => {
       const scheduledDateTime = new Date(meetingData.date);
       scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      // Find associated opportunity and client account for this booking
-      const { data: opportunity } = await supabase
-        .from("opportunities")
-        .select("id")
-        .eq("booking_id", selectedBookingForMeeting.id)
-        .maybeSingle();
-
-      const { data: clientAccount } = await supabase
-        .from("client_accounts")
-        .select("id")
-        .eq("booking_id", selectedBookingForMeeting.id)
-        .maybeSingle();
-
       // Direct database insert for meeting
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -381,7 +368,7 @@ const AdminBookings = () => {
         .insert({
           booking_id: selectedBookingForMeeting.id,
           project_id: null,
-          client_id: clientAccount?.id || null,
+          client_id: null, // Will be linked when client account is created
           title: meetingData.title,
           description: meetingData.description || `Meeting for ${selectedBookingForMeeting.client_name} booking`,
           scheduled_date: scheduledDateTime.toISOString(),
