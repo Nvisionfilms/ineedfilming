@@ -347,10 +347,10 @@ const AdminBookings = () => {
       
       if (projectError) throw projectError;
 
-      // Now delete the booking
+      // Mark as permanently deleted (soft delete)
       const { error } = await supabase
         .from("custom_booking_requests")
-        .delete()
+        .update({ deleted_permanently: true })
         .eq("id", selectedBookingForDelete.id);
         
       if (error) throw error;
