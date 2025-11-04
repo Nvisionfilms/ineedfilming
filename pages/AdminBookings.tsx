@@ -229,15 +229,23 @@ const AdminBookings = () => {
       const booking = bookings.find(b => b.id === bookingId);
       if (!booking) throw new Error("Booking not found");
 
-      // Update booking status to lead
-      const { error: updateError } = await supabase
-        .from("custom_booking_requests")
-        .update({ status: "lead" })
-        .eq("id", bookingId);
+      // Check if opportunity already exists for this booking
+      const { data: existingOpp } = await supabase
+        .from("opportunities")
+        .select("id")
+        .eq("booking_id", bookingId)
+        .maybeSingle();
 
-      if (updateError) throw updateError;
+      if (existingOpp) {
+        toast({
+          title: "Already a Lead",
+          description: "This booking is already in the pipeline",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // Create opportunity in pipeline
+      // Create opportunity in pipeline (don't change booking status)
       const { error: oppError } = await supabase
         .from("opportunities")
         .insert({
@@ -255,14 +263,11 @@ const AdminBookings = () => {
           expected_close_date: booking.booking_date
         });
 
-      if (oppError) {
-        console.error("Error creating opportunity:", oppError);
-        // Don't fail the whole operation if opportunity creation fails
-      }
+      if (oppError) throw oppError;
 
       toast({
         title: "Marked as Lead",
-        description: "Booking has been marked as a lead and added to pipeline",
+        description: "Booking has been added to pipeline as a new lead",
       });
       
       loadBookings();
