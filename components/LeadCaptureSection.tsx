@@ -122,21 +122,21 @@ const LeadCaptureSection = () => {
     setIsSubmitting(true);
 
     try {
-      // Direct database insert - no Edge Function needed
-      const { error } = await supabase
-        .from('custom_booking_requests')
-        .insert({
-          client_name: name,
-          client_email: email,
-          client_phone: "N/A",
-          client_company: null,
-          client_type: "small_business",
-          requested_price: budget[0],
-          deposit_amount: 0,
-          project_details: `${projectType} project - ${getMoodLabel(mood[0])} mood, ${getGenreLabel(genre[0])} genre, ${filmingTime[0]} hours filming time`,
-          booking_date: preferredDate ? format(preferredDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-          booking_time: preferredTime || "Not specified",
-        });
+      // Call Edge Function to handle submission with email notifications
+      const { error } = await supabase.functions.invoke("submit-custom-booking", {
+        body: {
+          clientName: name,
+          clientEmail: email,
+          clientPhone: "N/A",
+          clientCompany: null,
+          clientType: "small_business",
+          requestedPrice: budget[0],
+          depositAmount: 0,
+          projectDetails: `${projectType} project - ${getMoodLabel(mood[0])} mood, ${getGenreLabel(genre[0])} genre, ${filmingTime[0]} hours filming time`,
+          bookingDate: preferredDate ? format(preferredDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+          bookingTime: preferredTime || "Not specified",
+        }
+      });
 
       if (error) throw error;
 
