@@ -3,7 +3,40 @@
 -- Run this in your Supabase SQL Editor
 -- ============================================
 
--- 1. CONTACT FORM SUBMISSIONS TABLE
+-- IMPORTANT: Tables are created in dependency order
+-- Create independent tables first, then tables with foreign keys
+
+-- 1. USER ROLES TABLE (for admin/client permissions)
+-- This must be created FIRST because other tables reference it
+CREATE TABLE IF NOT EXISTS public.user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'client', 'guest')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, role)
+);
+
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own roles"
+ON public.user_roles
+FOR SELECT
+TO authenticated
+USING (user_id = auth.uid());
+
+CREATE POLICY "Admins can manage all roles"
+ON public.user_roles
+FOR ALL
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = auth.uid()
+    AND ur.role = 'admin'
+  )
+);
+
+-- 2. CONTACT FORM SUBMISSIONS TABLE
 CREATE TABLE IF NOT EXISTS public.contacts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -26,35 +59,6 @@ WITH CHECK (true);
 CREATE POLICY "Admins can view all contacts"
 ON public.contacts
 FOR SELECT
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_roles.user_id = auth.uid()
-    AND user_roles.role = 'admin'
-  )
-);
-
--- 2. USER ROLES TABLE (for admin/client permissions)
-CREATE TABLE IF NOT EXISTS public.user_roles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('admin', 'client', 'guest')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(user_id, role)
-);
-
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view their own roles"
-ON public.user_roles
-FOR SELECT
-TO authenticated
-USING (user_id = auth.uid());
-
-CREATE POLICY "Admins can manage all roles"
-ON public.user_roles
-FOR ALL
 TO authenticated
 USING (
   EXISTS (
