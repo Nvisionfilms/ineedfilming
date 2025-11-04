@@ -372,10 +372,10 @@ const AdminBookings = () => {
   };
 
   const handleScheduleMeeting = async () => {
-    if (!selectedBookingForMeeting || !meetingData.title || !meetingData.date || !meetingData.time || !meetingData.meetingLink) {
+    if (!selectedBookingForMeeting || !meetingData.title || !meetingData.date || !meetingData.time) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields",
+        description: "Please fill in title, date, and time",
         variant: "destructive",
       });
       return;
@@ -1176,15 +1176,15 @@ const AdminBookings = () => {
               </select>
             </div>
             <div>
-              <Label htmlFor="meeting-link">Meeting Link *</Label>
+              <Label htmlFor="meeting-link">Meeting Link (Optional)</Label>
               <Input
                 id="meeting-link"
                 type="url"
-                placeholder="https://meet.google.com/..."
+                placeholder="https://meet.google.com/... (add later if needed)"
                 value={meetingData.meetingLink}
                 onChange={(e) => setMeetingData({ ...meetingData, meetingLink: e.target.value })}
-                required
               />
+              <p className="text-xs text-muted-foreground mt-1">You can add the meeting link later once date/time is confirmed</p>
             </div>
             <div>
               <Label htmlFor="meeting-description">Description</Label>
