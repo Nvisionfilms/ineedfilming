@@ -25,7 +25,7 @@
 - `create_episodes_table.sql` - Simplified version
 
 **Database Setup Needed:**
-Run the SQL script in your Supabase dashboard (wgcgeapxxhsmueenxhbt) to create the `episodes` table.
+Run the SQL script in your Supabase dashboard (tkkfatwpzjzzoszjiigd) to create the `episodes` table.
 
 **Navigation:**
 Added to Admin Sidebar under "Production" section with Clapperboard icon.
@@ -137,7 +137,7 @@ Added to `pages/ClientDeliverables.tsx` below the video player.
 
 ## 🗄️ Database Setup Required
 
-**Supabase Project:** `wgcgeapxxhsmueenxhbt.supabase.co`
+**Supabase Project:** `tkkfatwpzjzzoszjiigd.supabase.co`
 
 **Run This SQL:**
 ```sql
@@ -256,7 +256,7 @@ All changes are safely committed to:
 - **Netlify:** https://nvisionfunnel.netlify.app
 - **Netlify Dashboard:** https://app.netlify.com/sites/nvisionfunnel
 - **GitHub Repo:** https://github.com/Nvisionfilms/ineedfilming
-- **Supabase:** wgcgeapxxhsmueenxhbt.supabase.co
+- **Supabase:** tkkfatwpzjzzoszjiigd.supabase.co
 
 ---
 

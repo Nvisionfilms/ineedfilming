@@ -254,6 +254,28 @@ BEFORE UPDATE ON public.custom_booking_requests
 FOR EACH ROW
 EXECUTE FUNCTION public.update_updated_at_column();
 
+-- 7. FAILED LOGIN ATTEMPTS TABLE (for security logging)
+CREATE TABLE IF NOT EXISTS public.failed_login_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.failed_login_attempts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can view failed login attempts"
+ON public.failed_login_attempts
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_roles.user_id = auth.uid()
+    AND user_roles.role = 'admin'
+  )
+);
+
 -- ============================================
 -- SETUP COMPLETE!
 -- ============================================

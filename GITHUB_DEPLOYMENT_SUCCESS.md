@@ -99,9 +99,9 @@ Once connected, Netlify will use these settings:
 
 **Environment Variables** (must be added in Netlify):
 ```env
-VITE_SUPABASE_PROJECT_ID=wgcgeapxxhsmueenxhbt
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGci...
-VITE_SUPABASE_URL=https://wgcgeapxxhsmueenxhbt.supabase.co
+VITE_SUPABASE_PROJECT_ID=tkkfatwpzjzzoszjiigd
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRra2ZhdHdwemp6em9zemppaWdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyMTk2OTAsImV4cCI6MjA3Nzc5NTY5MH0.7i3fzA3qdLW1J8NP1mWemb-2mA1N-z4XUzoS6mR2m-8
+VITE_SUPABASE_URL=https://tkkfatwpzjzzoszjiigd.supabase.co
 ```
 
 ---
