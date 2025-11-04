@@ -358,8 +358,7 @@ const AdminBookings = () => {
       
       // Close dialog and reload
       setSelectedBooking(null);
-      setIsDialogOpen(false);
-      loadBookings();
+      await loadBookings();
     } catch (error: any) {
       toast({
         title: "Error deleting booking",
