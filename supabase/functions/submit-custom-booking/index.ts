@@ -207,7 +207,7 @@ serve(async (req) => {
     // Use sanitized data for emails to prevent injection
     try {
       const adminEmail = await resend.emails.send({
-        from: "New Vision Production <noreply@nvisionfilms.com>",
+        from: "NVision Films <contact@nvisionfilms.com>",
         to: ["nvisionmg@gmail.com"],
         subject: `New Custom Booking Request from ${sanitizedData.client_name}`,
       html: `
@@ -237,7 +237,7 @@ serve(async (req) => {
     // Send confirmation email to client using sanitized data
     try {
       const clientEmail = await resend.emails.send({
-        from: "New Vision Production <noreply@nvisionfilms.com>",
+        from: "NVision Films <contact@nvisionfilms.com>",
       to: [sanitizedData.client_email],
       subject: "Custom Booking Request Received",
       html: `

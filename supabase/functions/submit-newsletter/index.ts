@@ -100,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send notification email to admin
     try {
       const adminEmail = await resend.emails.send({
-        from: "New Vision Production <noreply@nvisionfilms.com>",
+        from: "NVision Films <contact@nvisionfilms.com>",
         to: ["nvisionmg@gmail.com"],
         subject: "New Newsletter Subscriber",
         html: `
@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send welcome email to subscriber
     try {
       const welcomeEmail = await resend.emails.send({
-        from: "New Vision Production <noreply@nvisionfilms.com>",
+        from: "NVision Films <contact@nvisionfilms.com>",
         to: [email],
         subject: "Welcome to New Vision Production",
         html: `
