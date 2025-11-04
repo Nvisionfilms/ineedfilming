@@ -261,34 +261,7 @@ const BookingPortal = () => {
 
     setIsProcessing(true);
     try {
-      // TODO: Integrate Stripe payment - for now, create booking without payment
-      toast({
-        title: "Payment Integration Coming Soon",
-        description: "Your booking request has been submitted. We'll contact you for payment details.",
-      });
-      
-      // Create booking request
-      const { error } = await supabase
-        .from('custom_booking_requests')
-        .insert({
-          client_name: formData.name,
-          client_email: formData.email,
-          client_phone: formData.phone,
-          client_company: formData.company,
-          client_type: formData.clientType,
-          requested_price: paymentAmount,
-          deposit_amount: calculateDeposit(paymentAmount),
-          project_details: `Package: ${selectedPkg?.name}\n${formData.projectDetails}`,
-          booking_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-          booking_time: selectedTime,
-        });
-      
-      if (error) throw error;
-      navigate("/booking-success");
-      setIsProcessing(false);
-      return;
-      
-      // Original payment code (disabled)
+      // Create Stripe checkout session
       const { data, error: paymentError } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           packageId: selectedPackage,
@@ -305,10 +278,11 @@ const BookingPortal = () => {
         }
       });
 
-      if (error) throw error;
+      if (paymentError) throw paymentError;
 
       if (data?.url) {
-        window.open(data.url, '_blank');
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Payment error:', error);
