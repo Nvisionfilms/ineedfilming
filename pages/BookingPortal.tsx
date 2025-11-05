@@ -127,7 +127,7 @@ const BookingPortal = () => {
         .from("custom_booking_requests")
         .select("*")
         .eq("approval_token", approvalToken)
-        .eq("status", "approved")
+        .in("status", ["approved", "countered"])
         .single();
 
       if (error) throw error;
@@ -135,7 +135,9 @@ const BookingPortal = () => {
       if (data) {
         setApprovedBooking(data);
         setSelectedPackage("custom");
-        setCustomPrice(data.approved_price.toString());
+        // Use counter_price if countered, otherwise approved_price
+        const price = data.status === "countered" ? data.counter_price : data.approved_price;
+        setCustomPrice(price.toString());
         setSelectedDate(new Date(data.booking_date));
         setSelectedTime(data.booking_time);
         setFormData({
