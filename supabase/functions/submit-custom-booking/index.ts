@@ -173,33 +173,11 @@ serve(async (req) => {
       );
     }
 
-    // BOOKING FLOW: Client has PURCHASED a service
-    // Stage: "won" (they already paid/committed)
-    // Creates: booking → opportunity (WON) → ready for client account creation
-    console.log("Creating opportunity for PAID booking:", booking.id);
-    const { error: oppError } = await supabaseClient
-      .from("opportunities")
-      .insert({
-        booking_id: booking.id,
-        contact_name: sanitizedData.client_name,
-        contact_email: sanitizedData.client_email,
-        contact_phone: sanitizedData.client_phone,
-        company: sanitizedData.client_company,
-        service_type: sanitizedData.project_details?.substring(0, 100) || "Custom Video Booking",
-        budget_min: requestedPrice,
-        budget_max: requestedPrice,
-        notes: `PAID Custom booking - ${bookingDate} at ${sanitizedData.booking_time}. ${sanitizedData.project_details || ""}`,
-        stage: "won", // They already booked/paid
-        source: "booking_portal",
-        expected_close_date: bookingDate
-      });
-
-    if (oppError) {
-      console.error("Error creating opportunity:", oppError);
-      // Don't fail the booking if opportunity creation fails
-    } else {
-      console.log("Won opportunity created for booking");
-    }
+    // BOOKING FLOW: Client submits custom request (NOT paid yet)
+    // Status: "pending" - waiting for admin approval
+    // NO opportunity created yet - will be created when admin approves/marks as lead
+    console.log("Custom booking request submitted:", booking.id);
+    console.log("Opportunity will be created when admin approves or marks as lead");
 
     // Send email notification to admin
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));

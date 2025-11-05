@@ -62,28 +62,48 @@ serve(async (req) => {
     if (action === "approve") {
       console.log("Creating opportunity for approved booking");
       
-      // Create or update opportunity
-      const { data: opportunity, error: oppError } = await supabaseClient
+      // Check if opportunity already exists
+      const { data: existingOpp } = await supabaseClient
         .from("opportunities")
-        .insert({
-          contact_name: booking.client_name,
-          contact_email: booking.client_email,
-          contact_phone: booking.client_phone,
-          company: booking.client_company,
-          service_type: booking.project_details?.substring(0, 100) || "Custom Booking",
-          budget_min: booking.requested_price,
-          budget_max: booking.requested_price,
-          notes: `Approved custom booking. ${booking.project_details || ""}`,
-          stage: "won",
-          source: "custom_booking"
-        })
-        .select()
-        .single();
+        .select("id")
+        .eq("booking_id", bookingId)
+        .maybeSingle();
 
-      if (oppError) {
-        console.error("Error creating opportunity:", oppError);
+      let opportunity = existingOpp;
+
+      if (!existingOpp) {
+        // Create opportunity only if it doesn't exist
+        const { data: newOpp, error: oppError } = await supabaseClient
+          .from("opportunities")
+          .insert({
+            booking_id: bookingId,
+            contact_name: booking.client_name,
+            contact_email: booking.client_email,
+            contact_phone: booking.client_phone,
+            company: booking.client_company,
+            service_type: booking.project_details?.substring(0, 100) || "Custom Booking",
+            budget_min: booking.requested_price,
+            budget_max: booking.requested_price,
+            notes: `Approved custom booking. ${booking.project_details || ""}`,
+            stage: "won",
+            source: "custom_booking"
+          })
+          .select()
+          .single();
+
+        if (oppError) {
+          console.error("Error creating opportunity:", oppError);
+        } else {
+          console.log("Opportunity created:", newOpp.id);
+          opportunity = newOpp;
+        }
       } else {
-        console.log("Opportunity created:", opportunity.id);
+        // Update existing opportunity to won stage
+        await supabaseClient
+          .from("opportunities")
+          .update({ stage: "won" })
+          .eq("id", existingOpp.id);
+        console.log("Updated existing opportunity to won:", existingOpp.id);
       }
 
       // Create project
