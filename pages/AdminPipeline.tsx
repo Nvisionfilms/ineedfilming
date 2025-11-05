@@ -144,29 +144,6 @@ export default function AdminPipeline() {
     }
   };
 
-  const updateStage = async (id: string, newStage: string) => {
-    // Optimistic update - immediately move the card
-    setOpportunities(prev => 
-      prev.map(opp => opp.id === id ? { ...opp, stage: newStage } : opp)
-    );
-
-    const { error } = await supabase
-      .from("opportunities")
-      .update({ stage: newStage })
-      .eq("id", id);
-
-    if (error) {
-      toast({ 
-        title: "Error updating stage", 
-        description: error.message, 
-        variant: "destructive" 
-      });
-      // Revert on error
-      loadOpportunities();
-    } else {
-      toast({ title: "Stage updated successfully" });
-    }
-  };
 
   const handleDeleteOpportunity = async (id: string) => {
     const { error } = await supabase
@@ -321,6 +298,41 @@ export default function AdminPipeline() {
   const handleDragStart = (opp: any) => {
     // Store the opportunity being dragged for future drag-and-drop implementation
     console.log('Dragging opportunity:', opp.contact_name);
+  };
+
+  const updateStageWithActivity = async (id: string, newStage: string) => {
+    // Optimistic update
+    setOpportunities(prev => 
+      prev.map(opp => opp.id === id ? { ...opp, stage: newStage } : opp)
+    );
+
+    const { error } = await supabase
+      .from("opportunities")
+      .update({ 
+        stage: newStage,
+        stage_changed_at: new Date().toISOString(),
+        days_in_stage: 0
+      })
+      .eq("id", id);
+
+    if (error) {
+      toast({ 
+        title: "Error updating stage", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+      loadOpportunities();
+    } else {
+      // Log activity
+      await supabase.from("opportunity_activities").insert({
+        opportunity_id: id,
+        activity_type: 'stage_change',
+        description: `Stage changed to ${stages.find(s => s.id === newStage)?.label}`,
+      });
+      
+      toast({ title: "Stage updated successfully" });
+      loadOpportunities();
+    }
   };
 
   return (
