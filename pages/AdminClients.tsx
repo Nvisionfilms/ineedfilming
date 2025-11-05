@@ -240,14 +240,19 @@ const AdminClients = () => {
       });
 
       console.log('Edge Function response:', { data, error });
+      console.log('Response data type:', typeof data);
+      console.log('Response data:', JSON.stringify(data, null, 2));
 
       if (error) {
         console.error('Edge Function error:', error);
-        throw error;
+        throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
       }
       if (data?.error) {
         console.error('Edge Function returned error:', data.error);
-        throw new Error(data.error);
+        throw new Error(`Function returned: ${data.error}`);
+      }
+      if (!data?.success) {
+        throw new Error(`Unexpected response: ${JSON.stringify(data)}`);
       }
 
       toast.success("Client account created successfully");
