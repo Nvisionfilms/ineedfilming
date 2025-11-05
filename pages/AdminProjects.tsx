@@ -94,7 +94,12 @@ export default function AdminProjects() {
   };
 
   const loadClientAccounts = async () => {
-    const { data: clientData } = await supabase.from("client_accounts").select("*");
+    // Only load active clients (those with projects or approved bookings)
+    const { data: clientData } = await supabase
+      .from("client_accounts")
+      .select("*")
+      .or("project_id.not.is.null,booking_id.not.is.null");
+    
     if (clientData) {
       // Fetch profile data for each client
       const clientsWithProfiles = await Promise.all(

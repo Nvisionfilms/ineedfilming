@@ -101,9 +101,11 @@ export default function AdminEpisodePlanner() {
 
   const loadClients = async () => {
     try {
+      // Only load active clients (those with projects or approved bookings)
       const { data, error } = await supabase
         .from("client_accounts")
-        .select("id, company_name, user_id")
+        .select("id, company_name, user_id, project_id, booking_id")
+        .or("project_id.not.is.null,booking_id.not.is.null")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
