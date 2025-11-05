@@ -838,7 +838,7 @@ const AdminBookings = () => {
                 </CollapsibleContent>
               </Collapsible>
 
-              {booking.status === "pending" && (
+              {(booking.status === "pending" || booking.status === "countered") && (
                 <div className="space-y-2">
                   <Button
                     onClick={() => {
