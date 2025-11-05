@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import Stripe from 'https://esm.sh/stripe@14.21.0';
+import { Resend } from "https://esm.sh/resend@3.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,6 +86,99 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       console.log('Booking and payment created successfully');
+
+      // Create client portal account and send credentials
+      const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+      const tempPassword = `NV${Math.random().toString(36).slice(-8)}${Date.now().toString(36).slice(-4)}!`;
+      
+      // Create auth user
+      const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
+        email: session.customer_email || metadata?.customerEmail || '',
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: metadata?.customerName || '',
+        },
+      });
+
+      if (authError) {
+        console.error("Error creating auth user:", authError);
+      } else if (authData.user) {
+        console.log("Auth user created:", authData.user.id);
+        
+        // Get the booking ID we just created
+        const { data: newBooking } = await supabaseClient
+          .from("custom_booking_requests")
+          .select("id")
+          .eq("client_email", session.customer_email || metadata?.customerEmail || '')
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        
+        // Create client account
+        const { error: clientError } = await supabaseClient
+          .from("client_accounts")
+          .insert({
+            user_id: authData.user.id,
+            booking_id: newBooking?.id,
+            company_name: metadata?.company || metadata?.customerName || '',
+            status: "active",
+          });
+
+        if (clientError) {
+          console.error("Error creating client account:", clientError);
+        } else {
+          console.log("Client account created successfully");
+        }
+
+        // Add client role
+        const { error: roleError } = await supabaseClient
+          .from("user_roles")
+          .insert({
+            user_id: authData.user.id,
+            role: "client",
+          });
+
+        if (roleError) {
+          console.error("Error adding client role:", roleError);
+        }
+
+        // Send credentials email
+        try {
+          await resend.emails.send({
+            from: "Eric Sattler <contact@nvisionfilms.com>",
+            to: [session.customer_email || metadata?.customerEmail || ''],
+            subject: "Your Client Portal Access - New Vision Production",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #10b981;">Welcome to New Vision Production!</h1>
+                <p>Hi ${metadata?.customerName || 'there'},</p>
+                <p>Thank you for your payment! Your booking is confirmed and we've created your client portal account.</p>
+                <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h2 style="margin-top: 0;">Your Login Credentials:</h2>
+                  <p><strong>Email:</strong> ${session.customer_email || metadata?.customerEmail}</p>
+                  <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+                </div>
+                <p><strong>Important:</strong> Please change your password after your first login.</p>
+                <div style="margin: 30px 0; text-align: center;">
+                  <a href="${req.headers.get("origin") || 'https://nvisionfilms.netlify.app'}/client/login" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Access Client Portal</a>
+                </div>
+                <p>In your portal, you can:</p>
+                <ul>
+                  <li>View project status and deliverables</li>
+                  <li>Upload and share files</li>
+                  <li>Communicate with our team</li>
+                  <li>Track project milestones</li>
+                </ul>
+                <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+              </div>
+            `,
+          });
+          console.log("Client portal credentials email sent");
+        } catch (emailError) {
+          console.error("Error sending credentials email:", emailError);
+        }
+      }
     }
 
 

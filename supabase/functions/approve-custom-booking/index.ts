@@ -126,90 +126,9 @@ serve(async (req) => {
         console.log("Project created successfully");
       }
 
-      // Create client account with auth user
-      console.log("Creating client account for approved booking");
-      
-      // Generate a temporary password
-      const tempPassword = `NV${Math.random().toString(36).slice(-8)}${Date.now().toString(36).slice(-4)}!`;
-      
-      // Create auth user
-      const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
-        email: booking.client_email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name: booking.client_name,
-        },
-      });
-
-      if (authError) {
-        console.error("Error creating auth user:", authError);
-      } else if (authData.user) {
-        console.log("Auth user created:", authData.user.id);
-        
-        // Create client account
-        const { error: clientError } = await supabaseClient
-          .from("client_accounts")
-          .insert({
-            user_id: authData.user.id,
-            booking_id: bookingId,
-            company_name: booking.client_company || booking.client_name,
-            status: "active",
-          });
-
-        if (clientError) {
-          console.error("Error creating client account:", clientError);
-        } else {
-          console.log("Client account created successfully");
-        }
-
-        // Add client role
-        const { error: roleError } = await supabaseClient
-          .from("user_roles")
-          .insert({
-            user_id: authData.user.id,
-            role: "client",
-          });
-
-        if (roleError) {
-          console.error("Error adding client role:", roleError);
-        }
-
-        // Send credentials email
-        try {
-          await resend.emails.send({
-            from: "Eric Sattler <contact@nvisionfilms.com>",
-            to: [booking.client_email],
-            subject: "Your Client Portal Access - New Vision Production",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #10b981;">Welcome to New Vision Production!</h1>
-                <p>Hi ${booking.client_name},</p>
-                <p>Your booking has been approved and we've created your client portal account.</p>
-                <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h2 style="margin-top: 0;">Your Login Credentials:</h2>
-                  <p><strong>Email:</strong> ${booking.client_email}</p>
-                  <p><strong>Temporary Password:</strong> ${tempPassword}</p>
-                </div>
-                <p><strong>Important:</strong> Please change your password after your first login.</p>
-                <div style="margin: 30px 0; text-align: center;">
-                  <a href="${origin}/client/login" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Access Client Portal</a>
-                </div>
-                <p>In your portal, you can:</p>
-                <ul>
-                  <li>View project status and deliverables</li>
-                  <li>Upload and share files</li>
-                  <li>Communicate with our team</li>
-                  <li>Track project milestones</li>
-                </ul>
-                <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
-              </div>
-            `,
-          });
-        } catch (emailError) {
-          console.error("Error sending credentials email:", emailError);
-        }
-      }
+      // NOTE: Client account creation happens AFTER payment in stripe-webhook-handler
+      // This ensures clients only get portal access after they've paid
+      console.log("Client account will be created after payment confirmation");
     }
 
     // Send email to client based on action
