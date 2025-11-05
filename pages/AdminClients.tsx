@@ -239,14 +239,23 @@ const AdminClients = () => {
         }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      console.log('Edge Function response:', { data, error });
+
+      if (error) {
+        console.error('Edge Function error:', error);
+        throw error;
+      }
+      if (data?.error) {
+        console.error('Edge Function returned error:', data.error);
+        throw new Error(data.error);
+      }
 
       toast.success("Client account created successfully");
       resetCreateDialog();
       fetchData();
     } catch (error: any) {
-      toast.error(`Error creating client: ${error.message}`);
+      console.error('Full error:', error);
+      toast.error(`Error creating client: ${error.message || JSON.stringify(error)}`);
     } finally {
       setCreating(false);
     }
