@@ -35,21 +35,7 @@ serve(async (req) => {
 
     if (authError) throw authError
 
-    // Create profile
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email,
-        full_name,
-        role: 'client'
-      })
-
-    if (profileError) {
-      // Rollback: delete auth user
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-      throw profileError
-    }
+    // Profile is created automatically by trigger, so we skip manual creation
 
     // Create client account
     const { data: clientData, error: clientError } = await supabaseAdmin
