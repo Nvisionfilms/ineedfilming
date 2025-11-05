@@ -160,6 +160,7 @@ export default function AdminEpisodePlanner() {
         status: formData.status,
         duration_minutes: formData.duration_minutes || null,
         notes: formData.notes,
+        client_id: formData.client_id || null,
       };
 
       if (editingEpisode) {
@@ -339,6 +340,26 @@ export default function AdminEpisodePlanner() {
                   placeholder="Key narrative beats, emotional journey, etc."
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <Label>Assign to Client (Optional)</Label>
+                <Select 
+                  value={formData.client_id} 
+                  onValueChange={(val) => setFormData({ ...formData, client_id: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No client assigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No client assigned</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.company_name || `Client ${client.id.slice(0, 8)}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
