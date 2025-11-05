@@ -257,7 +257,7 @@ export default function AdminProjects() {
           shoot_date: newProject.shoot_date ? format(newProject.shoot_date, "yyyy-MM-dd") : null,
           delivery_date: newProject.delivery_date ? format(newProject.delivery_date, "yyyy-MM-dd") : null,
           notes: newProject.notes || null,
-          status: "pre_production",
+          status: "planning", // Must match database CHECK constraint: planning, active, completed, cancelled
           client_name: newProject.client_id ? "" : "Direct Project", // Satisfy NOT NULL constraint
           client_email: newProject.client_id ? "" : "admin@nvisionfilms.com", // Satisfy NOT NULL constraint
           client_id: newProject.client_id || null,
