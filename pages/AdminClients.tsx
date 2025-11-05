@@ -784,10 +784,10 @@ const AdminClients = () => {
                 <div className="text-xs text-muted-foreground">Storage</div>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-sm font-medium">
-                    {client.storage_used_gb.toFixed(2)} / {client.storage_limit_gb} GB
+                    {(client.storage_used_gb || 0).toFixed(2)} / {client.storage_limit_gb || 0} GB
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {((Number(client.storage_used_gb) / client.storage_limit_gb) * 100).toFixed(0)}%
+                    {client.storage_limit_gb ? ((Number(client.storage_used_gb || 0) / client.storage_limit_gb) * 100).toFixed(0) : 0}%
                   </span>
                 </div>
               </div>
