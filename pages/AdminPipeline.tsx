@@ -318,6 +318,11 @@ export default function AdminPipeline() {
     return opportunities.filter((opp) => opp.stage === stageId);
   };
 
+  const handleDragStart = (opp: any) => {
+    // Store the opportunity being dragged for future drag-and-drop implementation
+    console.log('Dragging opportunity:', opp.contact_name);
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="p-3 border-b space-y-3 shrink-0">
@@ -655,94 +660,113 @@ export default function AdminPipeline() {
                 </div>
                 <div className="bg-muted/30 p-2 space-y-2 flex-1 overflow-y-auto rounded-b-lg min-h-0">
                   {stageOpportunities.map((opp) => (
-                    <Card key={opp.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="p-3">
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-sm line-clamp-1 flex-1">{opp.contact_name}</CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 -mt-1 -mr-1"
-                            onClick={() => {
-                              if (confirm(`Delete opportunity for ${opp.contact_name}?`)) {
-                                handleDeleteOpportunity(opp.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        {opp.company && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                            <Building className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{opp.company}</span>
+                    <Card 
+                      key={opp.id} 
+                      className={cn(
+                        "cursor-move hover:shadow-lg transition-shadow",
+                        isOpportunityStale(new Date(opp.last_activity_at || opp.updated_at), opp.stage) && "border-orange-500 border-2"
+                      )}
+                      draggable
+                      onDragStart={() => handleDragStart(opp)}
+                    >
+                      <CardContent className="p-4">
+                        {/* Header with Lead Grade */}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold">{opp.contact_name}</h3>
+                              {opp.lead_grade && (
+                                <Badge className={getLeadGradeColor(opp.lead_grade)}>
+                                  {getLeadGradeIcon(opp.lead_grade)} {opp.lead_grade}
+                                </Badge>
+                              )}
+                            </div>
+                            {opp.company && (
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                <Building className="w-3 h-3" />
+                                {opp.company}
+                              </p>
+                            )}
                           </div>
-                        )}
-                      </CardHeader>
-                      <CardContent className="p-3 pt-0 space-y-1.5">
-                        <div className="flex items-center gap-1 text-xs">
-                          <Mail className="w-3 h-3 shrink-0 text-muted-foreground" />
-                          <span className="truncate">{opp.contact_email}</span>
+                          
+                          {/* Quick Actions Menu */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedOpportunity(opp);
+                                setIsMeetingDialogOpen(true);
+                              }}>
+                                <CalendarIcon className="w-4 h-4 mr-2" />
+                                Schedule Meeting
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.location.href = `mailto:${opp.contact_email}`}>
+                                <Mail className="w-4 h-4 mr-2" />
+                                Send Email
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteOpportunity(opp.id)}>
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        {opp.contact_phone && (
-                          <div className="flex items-center gap-1 text-xs">
-                            <Phone className="w-3 h-3 shrink-0 text-muted-foreground" />
-                            <span className="truncate">{opp.contact_phone}</span>
-                          </div>
-                        )}
-                        {opp.service_type && (
-                          <Badge variant="outline" className="text-xs mt-1">
-                            {opp.service_type}
-                          </Badge>
-                        )}
-                        {(opp.budget_min || opp.budget_max) && (
-                          <div className="flex items-center gap-1 text-xs font-semibold text-primary pt-1">
-                            <DollarSign className="w-3 h-3 shrink-0" />
-                            <span className="truncate">
-                              {opp.budget_min && opp.budget_max
-                                ? opp.budget_min === opp.budget_max
-                                  ? `$${opp.budget_min.toLocaleString()}`
-                                  : `$${opp.budget_min.toLocaleString()}-$${opp.budget_max.toLocaleString()}`
-                                : opp.budget_min
-                                ? `$${opp.budget_min.toLocaleString()}+`
-                                : `≤$${opp.budget_max.toLocaleString()}`}
+
+                        {/* Budget */}
+                        {opp.budget_max && (
+                          <div className="flex items-center gap-2 text-sm mb-2">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <span className="font-semibold text-green-600">
+                              ${opp.budget_max.toLocaleString()}
                             </span>
                           </div>
                         )}
-                        <div className="flex gap-2 mt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 h-8 text-xs"
-                            onClick={() => {
-                              setSelectedOpportunity(opp);
-                              setMeetingData({
-                                title: `Strategy Call - ${opp.contact_name}`,
-                                date: undefined,
-                                time: "09:00",
-                                durationMinutes: 30,
-                                description: `Discuss ${opp.service_type} project`,
-                                meetingLink: "",
-                              });
-                              setIsMeetingDialogOpen(true);
-                            }}
-                          >
-                            <Video className="w-3 h-3 mr-1" />
-                            Schedule
-                          </Button>
+
+                        {/* Days in Stage */}
+                        {opp.days_in_stage !== undefined && (
+                          <div className={cn(
+                            "flex items-center gap-2 text-xs mb-2",
+                            getDaysInStageColor(opp.days_in_stage)
+                          )}>
+                            <Clock className="w-3 h-3" />
+                            {opp.days_in_stage} days in stage
+                          </div>
+                        )}
+
+                        {/* Last Activity */}
+                        <div className="text-xs text-muted-foreground mb-2">
+                          Last activity: {formatDistanceToNow(new Date(opp.last_activity_at || opp.updated_at))} ago
                         </div>
-                        <Select value={opp.stage} onValueChange={(value) => updateStage(opp.id, value)}>
-                          <SelectTrigger className="w-full mt-2 h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {stages.map((s) => (
-                              <SelectItem key={s.id} value={s.id}>
-                                {s.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+
+                        {/* Stale Warning */}
+                        {isOpportunityStale(new Date(opp.last_activity_at || opp.updated_at), opp.stage) && (
+                          <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 p-2 rounded mt-2">
+                            <AlertCircle className="w-3 h-3" />
+                            Needs follow-up!
+                          </div>
+                        )}
+
+                        {/* Expected Close Date */}
+                        {opp.expected_close_date && (
+                          <div className={cn(
+                            "text-xs mt-2",
+                            isBefore(new Date(opp.expected_close_date), new Date()) ? "text-red-500" : "text-muted-foreground"
+                          )}>
+                            Close: {format(new Date(opp.expected_close_date), 'MMM d, yyyy')}
+                            {isBefore(new Date(opp.expected_close_date), new Date()) && " (Overdue)"}
+                          </div>
+                        )}
+
+                        {/* Service Type */}
+                        {opp.service_type && (
+                          <div className="text-xs text-muted-foreground mt-2 truncate">
+                            {opp.service_type}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
