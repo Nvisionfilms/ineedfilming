@@ -227,34 +227,20 @@ const AdminClients = () => {
 
     setCreating(true);
     try {
-      // Step 1: Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newClient.email,
-        password: newClient.password,
-        email_confirm: true,
-        user_metadata: {
+      // Call Edge Function to create user (requires service role)
+      const { data, error } = await supabase.functions.invoke('create-client-user', {
+        body: {
+          email: newClient.email,
+          password: newClient.password,
           full_name: newClient.full_name,
-        }
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create user");
-
-      // Step 2: Create client account record
-      const { error: clientError } = await supabase
-        .from('client_accounts')
-        .insert({
-          user_id: authData.user.id,
           company_name: newClient.company_name,
           project_id: newClient.project_id || null,
           booking_id: newClient.booking_id || null,
-        });
+        }
+      });
 
-      if (clientError) {
-        // Rollback: delete auth user if client account creation fails
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        throw clientError;
-      }
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
       toast.success("Client account created successfully");
       resetCreateDialog();
