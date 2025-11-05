@@ -251,12 +251,16 @@ export default function AdminProjects() {
       const { data: projectData, error: projectError } = await supabase
         .from("projects")
         .insert({
+          title: newProject.project_name, // Required by database
           project_name: newProject.project_name,
           project_type: newProject.project_type,
           shoot_date: newProject.shoot_date ? format(newProject.shoot_date, "yyyy-MM-dd") : null,
           delivery_date: newProject.delivery_date ? format(newProject.delivery_date, "yyyy-MM-dd") : null,
           notes: newProject.notes || null,
           status: "pre_production",
+          client_name: newProject.client_id ? "" : "Direct Project", // Satisfy NOT NULL constraint
+          client_email: newProject.client_id ? "" : "admin@nvisionfilms.com", // Satisfy NOT NULL constraint
+          client_id: newProject.client_id || null,
         })
         .select()
         .single();
