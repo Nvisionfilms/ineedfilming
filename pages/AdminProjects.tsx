@@ -246,31 +246,45 @@ export default function AdminProjects() {
   };
 
   const handleCreateProject = async () => {
+    console.log('Creating project with:', newProject);
+    
     if (!newProject.project_name || !newProject.project_type) {
       toast({ title: "Project name and type are required", variant: "destructive" });
       return;
     }
 
+    if (!newProject.project_name.trim()) {
+      toast({ title: "Project name cannot be empty", variant: "destructive" });
+      return;
+    }
+
     setCreatingProject(true);
     try {
+      const projectInsertData = {
+        title: newProject.project_name.trim(), // Required by database
+        project_name: newProject.project_name.trim(),
+        project_type: newProject.project_type,
+        shoot_date: newProject.shoot_date ? format(newProject.shoot_date, "yyyy-MM-dd") : null,
+        delivery_date: newProject.delivery_date ? format(newProject.delivery_date, "yyyy-MM-dd") : null,
+        notes: newProject.notes || null,
+        status: "pre_production", // Must match database CHECK constraint and UI projectStatuses
+        client_name: newProject.client_id ? "" : "Direct Project", // Satisfy NOT NULL constraint
+        client_email: newProject.client_id ? "" : "admin@nvisionfilms.com", // Satisfy NOT NULL constraint
+        client_id: newProject.client_id || null,
+      };
+
+      console.log('Inserting project:', projectInsertData);
+
       const { data: projectData, error: projectError } = await supabase
         .from("projects")
-        .insert({
-          title: newProject.project_name, // Required by database
-          project_name: newProject.project_name,
-          project_type: newProject.project_type,
-          shoot_date: newProject.shoot_date ? format(newProject.shoot_date, "yyyy-MM-dd") : null,
-          delivery_date: newProject.delivery_date ? format(newProject.delivery_date, "yyyy-MM-dd") : null,
-          notes: newProject.notes || null,
-          status: "pre_production", // Must match database CHECK constraint and UI projectStatuses
-          client_name: newProject.client_id ? "" : "Direct Project", // Satisfy NOT NULL constraint
-          client_email: newProject.client_id ? "" : "admin@nvisionfilms.com", // Satisfy NOT NULL constraint
-          client_id: newProject.client_id || null,
-        })
+        .insert(projectInsertData)
         .select()
         .single();
 
-      if (projectError) throw projectError;
+      if (projectError) {
+        console.error('Project insert error:', projectError);
+        throw projectError;
+      }
 
       // If a client is selected, link the project to them
       if (newProject.client_id && projectData) {
