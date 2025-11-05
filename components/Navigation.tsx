@@ -97,7 +97,7 @@ const Navigation = () => {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}
@@ -112,7 +112,7 @@ const Navigation = () => {
                       const element = document.querySelector(item.href);
                       element?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2 cursor-pointer"
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors py-2 cursor-pointer"
                   >
                     {item.label}
                   </a>
