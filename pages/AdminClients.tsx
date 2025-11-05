@@ -353,18 +353,27 @@ const AdminClients = () => {
 
     setUpdating(true);
     try {
-      const { error } = await supabase
-        .from("client_accounts")
-        .delete()
-        .eq("id", selectedClient.id);
+      // Call Edge Function to delete both client account and auth user
+      const { data, error } = await supabase.functions.invoke('delete-client-user', {
+        body: { user_id: selectedClient.user_id }
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge Function error:', error);
+        throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
+      }
+      
+      if (data?.error) {
+        console.error('Edge Function returned error:', data.error);
+        throw new Error(`Function returned: ${data.error}`);
+      }
 
-      toast.success("Client deleted successfully");
+      toast.success("Client and user account deleted successfully");
       setDeleteDialogOpen(false);
       setSelectedClient(null);
       fetchData();
     } catch (error: any) {
+      console.error('Error deleting client:', error);
       toast.error(`Error deleting client: ${error.message}`);
     } finally {
       setUpdating(false);
