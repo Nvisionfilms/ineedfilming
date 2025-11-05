@@ -147,7 +147,11 @@ const AdminClients = () => {
           .select("*")
           .order("created_at", { ascending: false }),
         supabase.from("projects").select("*").order("project_name"),
-        supabase.from("custom_booking_requests").select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("custom_booking_requests")
+          .select("*")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false }),
       ]);
 
       if (clientsRes.error) throw clientsRes.error;
