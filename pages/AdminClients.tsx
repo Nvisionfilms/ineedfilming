@@ -180,7 +180,12 @@ const AdminClients = () => {
       setProjects(projectsRes.data || []);
       setBookings(bookingsRes.data || []);
     } catch (error: any) {
+      console.error('Error loading data:', error);
       toast.error(`Error loading data: ${error.message}`);
+      // Set empty arrays to prevent blank screen
+      setClients([]);
+      setProjects([]);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
