@@ -39,6 +39,7 @@ const AdminBookings = () => {
   const [selectedBookingForMeeting, setSelectedBookingForMeeting] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBookingForDelete, setSelectedBookingForDelete] = useState<any>(null);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [meetingData, setMeetingData] = useState({
     title: "",
     date: undefined as Date | undefined,
@@ -225,6 +226,7 @@ const AdminBookings = () => {
         description: `Booking ${action === "approve" ? "approved" : action === "counter" ? "counter-offer sent" : "rejected"} and email sent to client`,
       });
 
+      setIsReviewDialogOpen(false);
       setSelectedBooking(null);
       setCounterPrice("");
       setAdminNotes("");
@@ -869,15 +871,20 @@ const AdminBookings = () => {
                   >
                     Mark as Lead
                   </Button>
-                  <Dialog>
+                  <Dialog open={isReviewDialogOpen && selectedBooking?.id === booking.id} onOpenChange={(open) => {
+                    if (open) {
+                      setSelectedBooking(booking);
+                      setCounterPrice(String(booking.requested_price));
+                      setIsReviewDialogOpen(true);
+                    } else {
+                      setIsReviewDialogOpen(false);
+                      setSelectedBooking(null);
+                      setCounterPrice("");
+                      setAdminNotes("");
+                    }
+                  }}>
                     <DialogTrigger asChild>
-                      <Button
-                        onClick={() => {
-                          setSelectedBooking(booking);
-                          setCounterPrice(String(booking.requested_price));
-                        }}
-                        className="w-full"
-                      >
+                      <Button className="w-full">
                         Review & Respond
                       </Button>
                     </DialogTrigger>
