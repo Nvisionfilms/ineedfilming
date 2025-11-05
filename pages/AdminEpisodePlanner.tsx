@@ -37,6 +37,7 @@ interface Episode {
   status: "planning" | "filming" | "editing" | "delivered";
   duration_minutes?: number;
   notes?: string;
+  client_id?: string;
   created_at: string;
 }
 
@@ -50,6 +51,7 @@ export default function AdminEpisodePlanner() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>("");
   const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEpisode, setEditingEpisode] = useState<Episode | null>(null);
@@ -63,10 +65,12 @@ export default function AdminEpisodePlanner() {
     status: "planning" as Episode["status"],
     duration_minutes: 0,
     notes: "",
+    client_id: "",
   });
 
   useEffect(() => {
     loadProjects();
+    loadClients();
   }, []);
 
   useEffect(() => {
@@ -92,6 +96,20 @@ export default function AdminEpisodePlanner() {
       toast.error(`Error loading projects: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("client_accounts")
+        .select("id, company_name, user_id")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (error: any) {
+      console.error("Error loading clients:", error.message);
     }
   };
 
@@ -198,6 +216,7 @@ export default function AdminEpisodePlanner() {
       status: episode.status,
       duration_minutes: episode.duration_minutes || 0,
       notes: episode.notes || "",
+      client_id: episode.client_id || "",
     });
     setDialogOpen(true);
   };
@@ -214,6 +233,7 @@ export default function AdminEpisodePlanner() {
       status: "planning",
       duration_minutes: 0,
       notes: "",
+      client_id: "",
     });
   };
 
