@@ -11,9 +11,25 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Mail, Phone, Building, DollarSign, Trash2, Video, Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Mail, Phone, Building, DollarSign, Trash2, Video, Calendar as CalendarIcon, MoreVertical, TrendingUp, AlertCircle, Clock } from "lucide-react";
+import { format, formatDistanceToNow, differenceInDays, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
+import { 
+  calculateLeadScore, 
+  getLeadGrade, 
+  getLeadGradeColor, 
+  getLeadGradeIcon,
+  getDaysInStageColor,
+  isOpportunityStale,
+  calculatePipelineMetrics,
+  calculateForecast
+} from "@/lib/crm-utils";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const stages = [
   { id: "new_lead", label: "New Lead", color: "bg-gray-500" },
@@ -49,6 +65,9 @@ export default function AdminPipeline() {
     notes: "",
     stage: "new_lead",
   });
+  const [metrics, setMetrics] = useState<any>(null);
+  const [forecast, setForecast] = useState<any>(null);
+  const [showMetrics, setShowMetrics] = useState(true);
 
   useEffect(() => {
     loadOpportunities();
@@ -85,6 +104,14 @@ export default function AdminPipeline() {
 
     if (!error && data) {
       setOpportunities(data);
+      
+      // Calculate metrics
+      const pipelineMetrics = calculatePipelineMetrics(data);
+      setMetrics(pipelineMetrics);
+      
+      // Calculate forecast
+      const forecastData = calculateForecast(data, 1);
+      setForecast(forecastData);
     }
   };
 
@@ -502,6 +529,116 @@ export default function AdminPipeline() {
         </Dialog>
         </div>
       </div>
+
+      {/* Metrics Dashboard */}
+      {showMetrics && metrics && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 px-3">
+          {/* Total Pipeline Value */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Pipeline Value
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${metrics.totalValue.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Weighted: ${metrics.weightedValue.toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Win Rate */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Win Rate
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {metrics.conversionRates.overallWinRate.toFixed(1)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Avg Deal: ${metrics.avgDealSize.toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Hot Leads */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Hot Leads 🔥
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-500">
+                {metrics.hotCount}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Grade A opportunities
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Stale Opportunities */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Needs Follow-up
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-500">
+                {metrics.staleCount}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Stale opportunities
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Revenue Forecast */}
+      {forecast && (
+        <Card className="mb-6 mx-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Revenue Forecast - {forecast.month}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Conservative</p>
+                <p className="text-xl font-bold text-green-600">
+                  ${forecast.conservative.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">75% probability</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Likely</p>
+                <p className="text-xl font-bold text-blue-600">
+                  ${forecast.likely.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">50% probability</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Optimistic</p>
+                <p className="text-xl font-bold text-purple-600">
+                  ${forecast.optimistic.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">25% probability</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Kanban Board - Horizontal Scroll */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden min-h-0">
