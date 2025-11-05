@@ -666,7 +666,7 @@ const AdminClients = () => {
                   <SelectContent>
                     {bookings.map((booking) => (
                       <SelectItem key={booking.id} value={booking.id}>
-                        {booking.client_name} - {booking.client_email}
+                        {booking.client_name || booking.company || "Client"} - {booking.service_type || "Service"} ({booking.client_email})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -863,7 +863,7 @@ const AdminClients = () => {
                   <SelectItem value="none">None</SelectItem>
                   {bookings.map((booking) => (
                     <SelectItem key={booking.id} value={booking.id}>
-                      {booking.client_name} - {booking.client_email}
+                      {booking.client_name || booking.company || "Client"} - {booking.service_type || "Service"} ({booking.client_email})
                     </SelectItem>
                   ))}
                 </SelectContent>
