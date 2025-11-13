@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Home, FileText, MessageSquare, Settings, Calendar, Video, FolderOpen } from "lucide-react";
+import { LogOut, Home, FileText, MessageSquare, Settings, Calendar, Video, FolderOpen, Wallet } from "lucide-react";
 
 export const ClientNavigation = () => {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export const ClientNavigation = () => {
     { path: "/client/meetings", label: "Meetings", icon: Calendar },
     { path: "/client/files", label: "Files", icon: FolderOpen },
     { path: "/client/messages", label: "Messages", icon: MessageSquare },
+    { path: "/client/payment-balance", label: "Payment Balance", icon: Wallet },
     { path: "/client/settings", label: "Settings", icon: Settings },
   ];
 

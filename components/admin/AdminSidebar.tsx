@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Briefcase, FolderKanban, DollarSign, Settings, LogOut, Shield, Archive, FileVideo, Calendar, FolderOpen, ChevronDown, MessageSquare, Video, Film, Clapperboard } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, FolderKanban, DollarSign, Settings, LogOut, Shield, Archive, FileVideo, Calendar, FolderOpen, ChevronDown, MessageSquare, Video, Film, Clapperboard, Wallet, Phone } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -38,6 +38,7 @@ const navGroups = [
     collapsible: true,
     items: [
       { title: "Story Requests", url: "/admin/bookings", icon: Video },
+      { title: "Manual Booking", url: "/admin/manual-booking", icon: Phone },
       { title: "Pipeline", url: "/admin/pipeline", icon: Clapperboard },
       { title: "Meetings", url: "/admin/meetings", icon: Calendar },
       { title: "Archived", url: "/admin/archived", icon: Archive },
@@ -57,6 +58,7 @@ const navGroups = [
     title: "Finance",
     items: [
       { title: "Payments", url: "/admin/payments", icon: DollarSign },
+      { title: "Payment Balances", url: "/admin/payment-balances", icon: Wallet },
     ]
   },
   {
@@ -86,14 +88,22 @@ export function AdminSidebar({ userEmail, hasMFA, onSignOut }: AdminSidebarProps
     isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50";
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
+    <Sidebar 
+      className={cn(
+        "transition-all",
+        collapsed ? "w-16" : "w-64 md:w-64"
+      )} 
+      collapsible="icon"
+    >
       <div className="p-4 border-b">
-        {!collapsed && (
-          <div>
-            <h2 className="text-lg font-bold">Eric's Studio</h2>
+        <div>
+          <h2 className={cn("text-lg font-bold", collapsed && "text-center text-xs")}>
+            {collapsed ? "ES" : "Eric's Studio"}
+          </h2>
+          {!collapsed && (
             <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <SidebarContent>

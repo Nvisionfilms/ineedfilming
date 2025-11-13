@@ -14,6 +14,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminPipeline from "./pages/AdminPipeline";
 import AdminProjects from "./pages/AdminProjects";
 import AdminPayments from "./pages/AdminPayments";
+import AdminPaymentBalances from "./pages/AdminPaymentBalances";
+import AdminManualBooking from "./pages/AdminManualBooking";
 import AdminSecurity from "./pages/AdminSecurity";
 import AdminAuditLogs from "./pages/AdminAuditLogs";
 import AdminLogin from "./pages/AdminLogin";
@@ -27,6 +29,7 @@ import ClientMessages from "./pages/ClientMessages";
 import ClientSettings from "./pages/ClientSettings";
 import ClientMeetings from "./pages/ClientMeetings";
 import ClientDeliverables from "./pages/ClientDeliverables";
+import ClientPaymentBalance from "./pages/ClientPaymentBalance";
 import AdminClientFiles from "./pages/AdminClientFiles";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ClientProtectedRoute } from "./components/client/ClientProtectedRoute";
@@ -102,6 +105,14 @@ const App = () => (
               </ClientProtectedRoute>
             }
           />
+          <Route
+            path="/client/payment-balance"
+            element={
+              <ClientProtectedRoute>
+                <ClientPaymentBalance />
+              </ClientProtectedRoute>
+            }
+          />
           
           {/* Admin Routes with Sidebar Layout */}
           <Route
@@ -114,6 +125,7 @@ const App = () => (
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="bookings" element={<AdminBookings />} />
+            <Route path="manual-booking" element={<AdminManualBooking />} />
             <Route path="archived" element={<AdminArchived />} />
             <Route path="pipeline" element={<AdminPipeline />} />
             <Route path="meetings" element={<AdminMeetings />} />
@@ -124,6 +136,7 @@ const App = () => (
             <Route path="clients/:clientId/files" element={<AdminClientFiles />} />
             <Route path="files" element={<AdminFiles />} />
             <Route path="payments" element={<AdminPayments />} />
+            <Route path="payment-balances" element={<AdminPaymentBalances />} />
             <Route path="security" element={<AdminSecurity />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />
           </Route>
