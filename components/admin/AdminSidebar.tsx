@@ -48,7 +48,7 @@ const navGroups = [
     title: "Production",
     collapsible: true,
     items: [
-      { title: "Founders", url: "/admin/clients", icon: Users },
+      { title: "Clients", url: "/admin/clients", icon: Users },
       { title: "Episodes", url: "/admin/projects", icon: Film },
       { title: "Episode Planner", url: "/admin/episode-planner", icon: Clapperboard },
       { title: "Messages", url: "/admin/messages", icon: MessageSquare },
