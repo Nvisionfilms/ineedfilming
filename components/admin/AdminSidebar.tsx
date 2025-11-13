@@ -37,7 +37,7 @@ const navGroups = [
     title: "Founder Stories",
     collapsible: true,
     items: [
-      { title: "Story Requests", url: "/admin/bookings", icon: Video },
+      { title: "Bookings", url: "/admin/bookings", icon: Video },
       { title: "Manual Booking", url: "/admin/manual-booking", icon: Phone },
       { title: "Pipeline", url: "/admin/pipeline", icon: Clapperboard },
       { title: "Meetings", url: "/admin/meetings", icon: Calendar },
