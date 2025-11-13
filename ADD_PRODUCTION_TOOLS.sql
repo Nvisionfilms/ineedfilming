@@ -139,28 +139,13 @@ CREATE TABLE IF NOT EXISTS public.call_sheet_shots (
 ALTER TABLE public.call_sheet_shots ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
--- 7. CREATE DEFAULT ROLES FOR PRODUCTION
+-- 7. NOTES
 -- ============================================
-INSERT INTO public.user_roles (role, description)
-VALUES 
-  ('director', 'Project Director'),
-  ('dp', 'Director of Photography'),
-  ('producer', 'Producer'),
-  ('pa', 'Production Assistant'),
-  ('editor', 'Video Editor')
-ON CONFLICT (role) DO NOTHING;
-
--- ============================================
--- 8. ADD PRODUCTION TOOLS TO NAVIGATION
--- ============================================
--- This will be handled in the UI components
-
--- ============================================
--- 9. CREATE DEFAULT SHOT LIST TEMPLATES
--- ============================================
--- These can be inserted via the UI later
-
--- ============================================
--- 10. CREATE DEFAULT CALL SHEET TEMPLATES
--- ============================================
--- These can be inserted via the UI later
+-- Production tools are now ready to use!
+-- Access them via:
+-- - /admin/projects/:projectId/shot-list
+-- - /admin/projects/:projectId/call-sheet
+-- - /admin/projects/:projectId/locations
+--
+-- All tables have RLS enabled for security
+-- Only authenticated team members can access
