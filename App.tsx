@@ -37,6 +37,9 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminClients from "./pages/AdminClients";
 import AdminFiles from "./pages/AdminFiles";
 import AdminEpisodePlanner from "./pages/AdminEpisodePlanner";
+import ProjectShotList from "./pages/ProjectShotList";
+import ProjectCallSheet from "./pages/ProjectCallSheet";
+import ProjectLocations from "./pages/ProjectLocations";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +140,9 @@ const App = () => (
             <Route path="files" element={<AdminFiles />} />
             <Route path="payments" element={<AdminPayments />} />
             <Route path="payment-balances" element={<AdminPaymentBalances />} />
+            <Route path="projects/:projectId/shot-list" element={<ProjectShotList />} />
+            <Route path="projects/:projectId/call-sheet" element={<ProjectCallSheet />} />
+            <Route path="projects/:projectId/locations" element={<ProjectLocations />} />
             <Route path="security" element={<AdminSecurity />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />
           </Route>

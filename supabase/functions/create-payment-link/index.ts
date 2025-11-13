@@ -56,7 +56,7 @@ serve(async (req) => {
       throw new Error("Booking not found");
     }
 
-    // Create payment link
+    // Create payment link with multiple payment methods
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
@@ -71,12 +71,28 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
+      payment_method_types: [
+        'card',
+        'link',
+        'us_bank_account',
+        'affirm',
+        'klarna',
+      ],
+      payment_method_options: {
+        us_bank_account: {
+          financial_connections: { permissions: ['payment_method'] }
+        }
+      },
+      payment_intent_data: {
+        setup_future_usage: 'off_session',
+      },
       after_completion: {
         type: "redirect",
         redirect: {
           url: `${req.headers.get("origin")}/booking-success`,
         },
       },
+      allow_promotion_codes: true,
       metadata: {
         booking_id: bookingId,
         client_email: booking.client_email,
@@ -179,6 +195,15 @@ Hi ${booking.client_name},
 Great news! Your payment link is ready.
 
 PAYMENT AMOUNT: $${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+💳 PAYMENT OPTIONS:
+• Credit/Debit Card (Visa, Mastercard, Amex, Discover)
+• Apple Pay & Google Pay
+• Bank Transfer (ACH)
+• Installments with Klarna
+• Pay in 4 with Affirm
+
+💡 TIP: For the fastest checkout, use Apple Pay or Google Pay!
 ${description}
 
 BOOKING DETAILS:
