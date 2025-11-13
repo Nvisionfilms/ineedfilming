@@ -50,7 +50,7 @@ export default function AdminPayments() {
       setClientAccounts(clientsData);
 
       const totalPaid = paymentsData
-        .filter((p) => p.status === "paid")
+        .filter((p) => p.status === "succeeded" || p.status === "paid")
         .reduce((sum, p) => sum + parseFloat(String(p.amount)), 0);
 
       const totalPending = paymentsData
