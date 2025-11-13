@@ -52,9 +52,10 @@ export default function AdminDashboard() {
       .select("*");
 
     if (bookings) {
-      const totalRevenue = bookings
-        .filter((b) => b.status === "approved")
-        .reduce((sum, b) => sum + parseFloat(String(b.approved_price || b.requested_price)), 0);
+      // Calculate ACTUAL revenue from paid payments only
+      const totalRevenue = payments
+        ?.filter((p) => p.status === "succeeded" || p.status === "paid")
+        .reduce((sum, p) => sum + parseFloat(String(p.amount)), 0) || 0;
 
       const pending = bookings.filter((b) => b.status === "pending").length;
       const approved = bookings.filter((b) => b.status === "approved").length;
@@ -94,12 +95,12 @@ export default function AdminDashboard() {
         { name: "Rejected", value: statusCounts.rejected },
       ]);
 
-      // Revenue by month (last 6 months)
+      // Revenue by month (last 6 months) - based on ACTUAL payments
       const monthlyRevenue = new Map();
-      bookings.forEach((booking) => {
-        if (booking.status === "approved") {
-          const month = new Date(booking.created_at).toLocaleDateString("en-US", { month: "short" });
-          const revenue = parseFloat(String(booking.approved_price || booking.requested_price));
+      payments?.forEach((payment) => {
+        if (payment.status === "succeeded" || payment.status === "paid") {
+          const month = new Date(payment.paid_at || payment.created_at).toLocaleDateString("en-US", { month: "short" });
+          const revenue = parseFloat(String(payment.amount));
           monthlyRevenue.set(month, (monthlyRevenue.get(month) || 0) + revenue);
         }
       });
@@ -147,7 +148,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">From approved bookings</p>
+            <p className="text-xs text-muted-foreground">Actual payments received</p>
           </CardContent>
         </Card>
 
