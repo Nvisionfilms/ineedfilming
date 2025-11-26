@@ -30,17 +30,19 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const {
       title, description, scheduled_at, duration_minutes,
-      meeting_link, client_id, booking_id, project_id
+      meeting_link, location, notes, client_id, project_id,
+      google_event_id, meet_link
     } = req.body;
 
     const result = await pool.query(
       `INSERT INTO meetings (
         title, description, scheduled_at, duration_minutes,
-        meeting_link, client_id, booking_id, project_id, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        meeting_link, location, notes, client_id, project_id,
+        google_event_id, meet_link, created_by, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'scheduled')
       RETURNING *`,
       [title, description, scheduled_at, duration_minutes, meeting_link,
-       client_id, booking_id, project_id, req.user?.id]
+       location, notes, client_id, project_id, google_event_id, meet_link, req.user?.id]
     );
 
     res.json(result.rows[0]);
