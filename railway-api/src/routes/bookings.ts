@@ -337,7 +337,7 @@ router.post('/:id/counter', authenticate, requireAdmin, async (req: AuthRequest,
           <p style="font-size: 16px; line-height: 1.6; color: #333;">If this works for you, click below to accept and pay your deposit. If you'd like to discuss further, simply reply to this email!</p>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${SITE_URL}/pay/${booking.id}?accept=counter" style="display: inline-block; background: #f59e0b; color: white; padding: 15px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Accept & Pay Deposit</a>
+            <a href="${SITE_URL}/booking-portal?booking=${booking.id}&action=accept-counter&amount=${depositAmount}" style="display: inline-block; background: #f59e0b; color: white; padding: 15px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Accept & Pay Deposit</a>
           </div>
           
           <p style="font-size: 14px; color: #666; text-align: center;">Secure payment powered by Stripe</p>
