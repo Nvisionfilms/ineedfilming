@@ -363,6 +363,111 @@ class ApiClient {
       method: 'PUT',
     });
   }
+
+  // Booking Actions
+  async approveBooking(id: string, approvedPrice: number, adminNotes?: string) {
+    return this.request(`/api/bookings/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approved_price: approvedPrice, admin_notes: adminNotes }),
+    });
+  }
+
+  async rejectBooking(id: string, adminNotes?: string) {
+    return this.request(`/api/bookings/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ admin_notes: adminNotes }),
+    });
+  }
+
+  async counterBooking(id: string, counterPrice: number, adminNotes?: string) {
+    return this.request(`/api/bookings/${id}/counter`, {
+      method: 'POST',
+      body: JSON.stringify({ counter_price: counterPrice, admin_notes: adminNotes }),
+    });
+  }
+
+  async archiveBooking(id: string) {
+    return this.request(`/api/bookings/${id}/archive`, {
+      method: 'POST',
+    });
+  }
+
+  // Meeting Actions
+  async updateMeeting(id: string, data: any) {
+    return this.request(`/api/meetings/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteMeeting(id: string) {
+    return this.request(`/api/meetings/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Opportunities
+  async getOpportunities() {
+    return this.request('/api/opportunities', {
+      method: 'GET',
+    });
+  }
+
+  async createOpportunity(data: any) {
+    return this.request('/api/opportunities', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateOpportunity(id: string, data: any) {
+    return this.request(`/api/opportunities/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async addOpportunityActivity(id: string, data: any) {
+    return this.request(`/api/opportunities/${id}/activities`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteOpportunity(id: string) {
+    return this.request(`/api/opportunities/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Deliverable Actions
+  async updateDeliverable(id: string, data: any) {
+    return this.request(`/api/deliverables/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDeliverable(id: string) {
+    return this.request(`/api/deliverables/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Payment Actions
+  async createPayment(data: any) {
+    return this.request('/api/payments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePayment(id: string, data: any) {
+    return this.request(`/api/payments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const api = new ApiClient(API_URL);
