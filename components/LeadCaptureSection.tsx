@@ -122,23 +122,22 @@ const LeadCaptureSection = () => {
     setIsSubmitting(true);
 
     try {
-      // Call Edge Function to handle submission with email notifications
-      const { error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke("submit-custom-booking", {
-        body: {
-          clientName: name,
-          clientEmail: email,
-          clientPhone: "N/A",
-          clientCompany: null,
-          clientType: "small_business",
-          requestedPrice: budget[0],
-          depositAmount: 0,
-          projectDetails: `${projectType} project - ${getMoodLabel(mood[0])} mood, ${getGenreLabel(genre[0])} genre, ${filmingTime[0]} hours filming time`,
-          bookingDate: preferredDate ? format(preferredDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-          bookingTime: preferredTime || "Not specified",
-        }
+      // Submit custom booking via Railway API
+      const { error } = await api.createBooking({
+        client_name: name,
+        client_email: email,
+        client_phone: "N/A",
+        client_company: null,
+        client_type: "small_business",
+        requested_price: budget[0],
+        deposit_amount: 0,
+        project_details: `${projectType} project - ${getMoodLabel(mood[0])} mood, ${getGenreLabel(genre[0])} genre, ${filmingTime[0]} hours filming time`,
+        booking_date: preferredDate ? format(preferredDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+        booking_time: preferredTime || "Not specified",
+        status: 'pending'
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast({
         title: "Success!",
