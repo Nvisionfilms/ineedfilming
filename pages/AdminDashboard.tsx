@@ -114,7 +114,7 @@ export default function AdminDashboard() {
         
         {/* Quick Actions */}
         <div className="flex gap-2">
-          <Button onClick={() => navigate("/admin/bookings")} className="gap-2">
+          <Button onClick={() => navigate("/admin/manual-booking")} className="gap-2">
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New Story Request</span>
           </Button>
