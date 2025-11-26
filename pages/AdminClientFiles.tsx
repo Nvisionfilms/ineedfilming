@@ -133,9 +133,8 @@ const AdminClientFiles = () => {
                      uploadCategory === "private" ? "project-private-files" : "project-shared-files";
       const filePath = `${client.project_id}/${Date.now()}_${uploadFile.name}`;
 
-      const { error: uploadError } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from(bucket)
-        .upload(filePath, uploadFile);
+      // TODO: Implement R2 storage upload
+      const uploadError = new Error('R2 storage not implemented yet');
 
       if (uploadError) throw uploadError;
 
@@ -171,9 +170,9 @@ const AdminClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { data, error } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from(bucket)
-        .download(path);
+      // TODO: Implement R2 storage download
+      const data = null;
+      const error = new Error('R2 storage not implemented yet');
 
       if (error) throw error;
 
@@ -197,9 +196,8 @@ const AdminClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { error: storageError } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from(bucket)
-        .remove([path]);
+      // TODO: Implement R2 storage delete
+      const storageError = null; // Skip for now
 
       if (storageError) throw storageError;
 
@@ -241,9 +239,9 @@ const AdminClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { data, error } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from(bucket)
-        .createSignedUrl(path, 3600); // 1 hour expiry
+      // TODO: Implement R2 storage signed URLs
+      const data = { signedUrl: file.file_path };
+      const error = null; // 1 hour expiry
 
       if (error) throw error;
       

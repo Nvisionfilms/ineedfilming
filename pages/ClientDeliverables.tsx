@@ -107,12 +107,9 @@ export default function ClientDeliverables() {
       for (const deliverable of deliverablesWithVersions) {
         for (const version of deliverable.versions) {
           if (isVideoFile(version.file_name)) {
-            const { data } = /* TODO: R2 storage */ null as any // supabase.storage
-              .from(version.storage_bucket)
-              .createSignedUrl(version.file_path, 3600);
-            if (data?.signedUrl) {
-              urls[version.id] = data.signedUrl;
-            }
+            // TODO: Implement R2 storage signed URL generation
+            // For now, use the file path directly
+            urls[version.id] = version.file_path || '';
           }
         }
       }
@@ -224,18 +221,13 @@ export default function ClientDeliverables() {
 
   const handleDownload = async (version: Version) => {
     try {
-      const { data, error } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from(version.storage_bucket)
-        .download(version.file_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = version.file_name;
-      a.click();
-      URL.revokeObjectURL(url);
+      // TODO: Implement R2 storage download
+      // For now, open the file path directly
+      if (version.file_path) {
+        window.open(version.file_path, '_blank');
+        return;
+      }
+      throw new Error('File path not available');
     } catch (error: any) {
       toast({
         title: "Download failed",
