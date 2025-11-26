@@ -7,6 +7,7 @@ const router = Router();
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const SITE_URL = process.env.SITE_URL || 'https://ineedfilming.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'da1unv45@gmail.com';
+const ADMIN_CC = process.env.ADMIN_CC || ''; // Optional CC for admin notifications
 
 // Email template helper
 const emailWrapper = (content: string) => `
@@ -88,10 +89,13 @@ router.post('/', async (req: Request, res: Response) => {
         `),
       });
 
-      // Send notification to admin
+      // Send notification to admin (with optional CC)
+      const adminTo = [ADMIN_EMAIL];
+      if (ADMIN_CC) adminTo.push(ADMIN_CC);
+      
       await resend.emails.send({
         from: 'NVISION FILMS LLC <contact@nvisionfilms.com>',
-        to: [ADMIN_EMAIL],
+        to: adminTo,
         subject: `🎬 New Booking Request from ${client_name}`,
         html: emailWrapper(`
           <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">New Booking Request!</h1>
