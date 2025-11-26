@@ -24,58 +24,63 @@ export default function AdminFiles() {
   }, []);
 
   const loadData = async () => {
-    const { data: clientsData } = await supabase
-      .from("client_accounts")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data: clientsData } = await api.getClients();
+      const { data: projectsData } = await api.getProjects();
+      
+      // Get all files across all projects
+      const allFiles: any[] = [];
+      if (projectsData) {
+        for (const project of projectsData) {
+          const { data: files } = await api.getFiles(project.id);
+          if (files) {
+            allFiles.push(...files.map((f: any) => ({ ...f, project_id: project.id })));
+          }
+        }
+      }
 
-    const { data: projectsData } = await supabase
-      .from("projects")
-      .select("*");
+      if (clientsData && projectsData) {
+        // Sort clients by created_at descending
+        const sortedClients = clientsData.sort(
+          (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
 
-    const { data: filesData } = await supabase
-      .from("project_files")
-      .select("project_id, file_size_bytes");
-
-    if (clientsData && projectsData && filesData) {
-      // Fetch profiles for each client
-      const clientsWithProfiles = await Promise.all(
-        clientsData.map(async (client) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .eq("id", client.user_id)
-            .single();
-
-          const project = projectsData.find((p) => p.id === client.project_id);
+        // Attach project info to each client
+        const clientsWithProfiles = sortedClients.map((client: any) => {
+          const project = projectsData.find((p: any) => p.id === client.project_id);
+          
+          // TODO: Fetch user profiles from users table
+          const profile = { email: client.user_id, full_name: client.company_name };
 
           return {
             ...client,
             profile,
             project,
           };
-        })
-      );
+        });
 
-      // Calculate file counts per project
-      const counts: Record<string, number> = {};
-      let totalFiles = 0;
-      let totalStorageBytes = 0;
+        // Calculate file counts per project
+        const counts: Record<string, number> = {};
+        let totalFiles = 0;
+        let totalStorageBytes = 0;
 
-      filesData.forEach((file) => {
-        counts[file.project_id] = (counts[file.project_id] || 0) + 1;
-        totalFiles++;
-        totalStorageBytes += file.file_size_bytes;
-      });
+        allFiles.forEach((file) => {
+          counts[file.project_id] = (counts[file.project_id] || 0) + 1;
+          totalFiles++;
+          totalStorageBytes += file.file_size_bytes || 0;
+        });
 
-      setClients(clientsWithProfiles);
-      setProjects(projectsData);
-      setFileCounts(counts);
-      setStats({
-        totalClients: clientsData.length,
-        totalFiles,
-        totalStorage: totalStorageBytes / (1024 * 1024 * 1024), // Convert to GB
-      });
+        setClients(clientsWithProfiles);
+        setProjects(projectsData);
+        setFileCounts(counts);
+        setStats({
+          totalClients: clientsData.length,
+          totalFiles,
+          totalStorage: totalStorageBytes / (1024 * 1024 * 1024), // Convert to GB
+        });
+      }
+    } catch (error) {
+      console.error('Error loading files data:', error);
     }
   };
 

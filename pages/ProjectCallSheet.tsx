@@ -59,11 +59,10 @@ export default function ProjectCallSheet() {
 
   const fetchCallSheets = async () => {
     try {
-      const { data, error } = await supabase
-        .from("call_sheets")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("shoot_date", { ascending: false });
+      const { data, error } = await api.getCallSheets(projectId!);
+      const sorted = (data || []).sort((a: any, b: any) => 
+        new Date(b.shoot_date).getTime() - new Date(a.shoot_date).getTime()
+      );
 
       if (error) throw error;
       setCallSheets(data || []);
@@ -80,10 +79,7 @@ export default function ProjectCallSheet() {
 
   const fetchLocations = async () => {
     try {
-      const { data, error } = await supabase
-        .from("locations")
-        .select("*")
-        .eq("project_id", projectId);
+      const { data, error } = await api.getLocations(projectId!);
 
       if (error) throw error;
       setLocations(data || []);

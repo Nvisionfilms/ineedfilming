@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -90,44 +91,13 @@ const AdminClients = () => {
       }
 
       try {
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("id, email, full_name")
-          .or(`email.ilike.%${clientSearchQuery}%,full_name.ilike.%${clientSearchQuery}%`);
-
-        if (!profilesData || profilesData.length === 0) {
-          setSearchResults([]);
-          return;
-        }
-
-        const userIds = profilesData.map(p => p.id);
-        
-        const { data: clientsData } = await supabase
-          .from("client_accounts")
-          .select("*")
-          .in("user_id", userIds);
-
-        if (clientsData) {
-          // Manually join profiles and projects
-          const enrichedClients = await Promise.all(
-            clientsData.map(async (client) => {
-              const [profileRes, projectRes] = await Promise.all([
-                supabase.from("profiles").select("email, full_name").eq("id", client.user_id).single(),
-                client.project_id
-                  ? supabase.from("projects").select("project_name").eq("id", client.project_id).single()
-                  : Promise.resolve({ data: null, error: null }),
-              ]);
-
-              return {
-                ...client,
-                profiles: profileRes.data,
-                projects: projectRes.data,
-              };
-            })
-          );
-
-          setSearchResults(enrichedClients);
-        }
+        // Search clients via Railway API
+        const clients = await railwayApi.clients.getAll();
+        const filtered = clients.filter(client => 
+          client.email?.toLowerCase().includes(clientSearchQuery.toLowerCase()) ||
+          client.full_name?.toLowerCase().includes(clientSearchQuery.toLowerCase())
+        );
+        setSearchResults(filtered);
       } catch (error) {
         console.error("Error searching clients:", error);
       }
@@ -141,44 +111,16 @@ const AdminClients = () => {
     try {
       setLoading(true);
 
-      const [clientsRes, projectsRes, bookingsRes] = await Promise.all([
-        supabase
-          .from("client_accounts")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase.from("projects").select("*").order("project_name"),
-        supabase
-          .from("custom_booking_requests")
-          .select("*")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false }),
+      // Fetch all data via Railway API
+      const [clientsData, projectsData, bookingsData] = await Promise.all([
+        railwayApi.clients.getAll(),
+        railwayApi.projects.getAll(),
+        railwayApi.bookings.getAll(),
       ]);
 
-      if (clientsRes.error) throw clientsRes.error;
-      if (projectsRes.error) throw projectsRes.error;
-      if (bookingsRes.error) throw bookingsRes.error;
-
-      // Fetch profiles and projects separately for each client
-      const clientsWithData = await Promise.all(
-        (clientsRes.data || []).map(async (client) => {
-          const [profileRes, projectRes] = await Promise.all([
-            supabase.from("profiles").select("email, full_name").eq("id", client.user_id).single(),
-            client.project_id
-              ? supabase.from("projects").select("project_name").eq("id", client.project_id).single()
-              : Promise.resolve({ data: null, error: null }),
-          ]);
-
-          return {
-            ...client,
-            profiles: profileRes.data,
-            projects: projectRes.data,
-          };
-        })
-      );
-
-      setClients(clientsWithData);
-      setProjects(projectsRes.data || []);
-      setBookings(bookingsRes.data || []);
+      setClients(clientsData || []);
+      setProjects(projectsData || []);
+      setBookings(bookingsData.filter(b => b.status === 'approved') || []);
     } catch (error: any) {
       console.error('Error loading data:', error);
       toast.error(`Error loading data: ${error.message}`);
@@ -203,12 +145,7 @@ const AdminClients = () => {
       if (newClient.company_name) updateData.company_name = newClient.company_name;
 
       if (Object.keys(updateData).length > 0) {
-        const { error } = await supabase
-          .from("client_accounts")
-          .update(updateData)
-          .eq("id", selectedExistingClient.id);
-
-        if (error) throw error;
+        await railwayApi.clients.update(selectedExistingClient.id, updateData);
       }
 
       // TODO: Send notification email (requires email service integration)
@@ -298,28 +235,14 @@ const AdminClients = () => {
 
     setUpdating(true);
     try {
-      // Update client account
-      const { error: accountError } = await supabase
-        .from("client_accounts")
-        .update({
-          storage_limit_gb: editForm.storage_limit_gb,
-          project_id: editForm.project_id || null,
-          booking_id: editForm.booking_id || null,
-          company_name: editForm.company_name || null,
-        })
-        .eq("id", selectedClient.id);
-
-      if (accountError) throw accountError;
-
-      // Update profile name
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: editForm.full_name || null,
-        })
-        .eq("id", selectedClient.user_id);
-
-      if (profileError) throw profileError;
+      // Update client via Railway API
+      await railwayApi.clients.update(selectedClient.id, {
+        storage_limit_gb: editForm.storage_limit_gb,
+        project_id: editForm.project_id || null,
+        booking_id: editForm.booking_id || null,
+        company_name: editForm.company_name || null,
+        full_name: editForm.full_name || null,
+      });
 
       toast.success("Client updated successfully");
       setEditDialogOpen(false);
@@ -335,12 +258,7 @@ const AdminClients = () => {
     const newStatus = client.status === "active" ? "suspended" : "active";
     
     try {
-      const { error } = await supabase
-        .from("client_accounts")
-        .update({ status: newStatus })
-        .eq("id", client.id);
-
-      if (error) throw error;
+      await railwayApi.clients.update(client.id, { status: newStatus });
 
       toast.success(`Client ${newStatus === "active" ? "activated" : "suspended"}`);
       fetchData();
@@ -383,31 +301,20 @@ const AdminClients = () => {
 
     setCreatingProject(true);
     try {
-      const { data: projectData, error: projectError } = await supabase
-        .from("projects")
-        .insert({
-          title: newProject.project_name, // Required by database
-          project_name: newProject.project_name,
-          project_type: newProject.project_type,
-          shoot_date: newProject.shoot_date ? format(newProject.shoot_date, "yyyy-MM-dd") : null,
-          delivery_date: newProject.delivery_date ? format(newProject.delivery_date, "yyyy-MM-dd") : null,
-          notes: newProject.notes || null,
-          status: "pre_production",
-          client_name: selectedClient?.profiles?.full_name || selectedClient?.company_name || "Client",
-          client_email: selectedClient?.profiles?.email || "client@nvisionfilms.com",
-        })
-        .select()
-        .single();
-
-      if (projectError) throw projectError;
+      const projectData = await railwayApi.projects.create({
+        title: newProject.project_name,
+        project_name: newProject.project_name,
+        project_type: newProject.project_type,
+        shoot_date: newProject.shoot_date ? format(newProject.shoot_date, "yyyy-MM-dd") : null,
+        delivery_date: newProject.delivery_date ? format(newProject.delivery_date, "yyyy-MM-dd") : null,
+        notes: newProject.notes || null,
+        status: "pre_production",
+        client_name: selectedClient?.full_name || selectedClient?.company_name || "Client",
+        client_email: selectedClient?.email || "client@nvisionfilms.com",
+      });
 
       // Link project to client
-      const { error: updateError } = await supabase
-        .from("client_accounts")
-        .update({ project_id: projectData.id })
-        .eq("id", selectedClient.id);
-
-      if (updateError) throw updateError;
+      await railwayApi.clients.update(selectedClient.id, { project_id: projectData.id });
 
       toast.success("Project created and linked to client");
       setCreateProjectDialogOpen(false);

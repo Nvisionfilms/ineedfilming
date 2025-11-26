@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { ClientNavigation } from "@/components/client/ClientNavigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -59,15 +59,11 @@ export default function ClientDeliverables() {
 
   const loadDeliverables = async () => {
     try {
-      const { data: user, error: authError } = await api.getCurrentUser();
+      const { data: user, error: authError } = await railwayApi.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: clientAccount } = await supabase
-        .from("client_accounts")
-        .select("project_id")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .single();
+      const clients = await railwayApi.clients.getAll();
+      const clientAccount = clients.find(c => c.user_id === user.id);
 
       if (!clientAccount?.project_id) {
         setDeliverables([]);
@@ -75,26 +71,13 @@ export default function ClientDeliverables() {
         return;
       }
 
-      const { data: deliverablesData, error } = await supabase
-        .from("deliverables")
-        .select(`
-          id,
-          title,
-          description,
-          deliverable_type,
-          max_revisions
-        `)
-        .eq("project_id", clientAccount.project_id);
-
-      if (error) throw error;
+      const deliverablesData = await railwayApi.deliverables.getByProjectId(clientAccount.project_id);
 
       const deliverablesWithVersions = await Promise.all(
         (deliverablesData || []).map(async (deliverable) => {
-          const { data: versions } = await supabase
-            .from("deliverable_versions")
-            .select("*")
-            .eq("deliverable_id", deliverable.id)
-            .order("version_number", { ascending: false });
+          const allVersions = await railwayApi.deliverables.getAll();
+          const versions = allVersions.filter(v => v.deliverable_id === deliverable.id)
+            .sort((a, b) => b.version_number - a.version_number);
 
           return { ...deliverable, versions: versions || [] };
         })
@@ -102,13 +85,10 @@ export default function ClientDeliverables() {
 
       setDeliverables(deliverablesWithVersions);
 
-      // Load video URLs for video files
       const urls: Record<string, string> = {};
       for (const deliverable of deliverablesWithVersions) {
         for (const version of deliverable.versions) {
           if (isVideoFile(version.file_name)) {
-            // TODO: Implement R2 storage signed URL generation
-            // For now, use the file path directly
             urls[version.id] = version.file_path || '';
           }
         }
@@ -127,30 +107,14 @@ export default function ClientDeliverables() {
 
   const handleApprove = async (versionId: string, deliverableId: string) => {
     try {
-      const { data: user, error: authError } = await api.getCurrentUser();
+      const { data: user, error: authError } = await railwayApi.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error: updateError } = await supabase
-        .from("deliverable_versions")
-        .update({
-          status: "approved",
-          approved_by: user.id,
-          approved_at: new Date().toISOString()
-        })
-        .eq("id", versionId);
-
-      if (updateError) throw updateError;
-
-      const { error: feedbackError } = await supabase
-        .from("deliverable_feedback")
-        .insert({
-          version_id: versionId,
-          user_id: user.id,
-          feedback_type: "approval",
-          message: "Version approved"
-        });
-
-      if (feedbackError) throw feedbackError;
+      await railwayApi.deliverables.update(versionId, {
+        status: "approved",
+        approved_at: new Date().toISOString(),
+        approved_by: user.id,
+      });
 
       toast({
         title: "Version approved",
@@ -178,28 +142,13 @@ export default function ClientDeliverables() {
     }
 
     try {
-      const { data: user, error: authError } = await api.getCurrentUser();
+      const { data: user, error: authError } = await railwayApi.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error: feedbackError } = await supabase
-        .from("deliverable_feedback")
-        .insert({
-          version_id: feedbackDialog.versionId,
-          user_id: user.id,
-          feedback_type: feedbackForm.type,
-          message: feedbackForm.message,
-          timecode: feedbackForm.timecode || null
-        });
-
-      if (feedbackError) throw feedbackError;
-
       if (feedbackForm.type === "revision_request") {
-        const { error: updateError } = await supabase
-          .from("deliverable_versions")
-          .update({ status: "changes_requested" })
-          .eq("id", feedbackDialog.versionId);
-
-        if (updateError) throw updateError;
+        await railwayApi.deliverables.update(feedbackDialog.versionId, { 
+          status: "changes_requested" 
+        });
       }
 
       toast({

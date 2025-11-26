@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,55 +50,27 @@ export default function AdminDeliverableVersions() {
 
   const loadData = async () => {
     try {
-      const { data: deliverableData, error: deliverableError } = await supabase
-        .from("deliverables")
-        .select(`
-          *,
-          projects (project_name)
-        `)
-        .eq("id", id)
-        .single();
-
-      if (deliverableError) throw deliverableError;
+      const deliverableData = await railwayApi.deliverables.getById(id);
       setDeliverable(deliverableData);
 
-      const { data: versionsData, error: versionsError } = await supabase
-        .from("deliverable_versions")
-        .select(`
-          *
-        `)
-        .eq("deliverable_id", id)
-        .order("version_number", { ascending: false });
+      const allDeliverables = await railwayApi.deliverables.getAll();
+      const versionsData = allDeliverables
+        .filter(d => d.deliverable_id === id)
+        .sort((a, b) => b.version_number - a.version_number);
 
-      if (versionsError) throw versionsError;
-
-      // Fetch feedback separately for each version
+      // TODO: Add feedback endpoint
       const versionsWithFeedback = await Promise.all(
         (versionsData || []).map(async (version) => {
-          const { data: feedback } = await supabase
-            .from("deliverable_feedback")
-            .select(`
-              user_id,
-              feedback_type,
-              message,
-              timecode,
-              created_at
-            `)
-            .eq("version_id", version.id)
-            .order("created_at", { ascending: false });
+          // Placeholder for feedback - implement when endpoint is ready
+          const feedback = [];
 
-          // Get profile info for each feedback
           const feedbackWithProfiles = await Promise.all(
-            (feedback || []).map(async (fb) => {
-              const { data: profile } = await supabase
-                .from("profiles")
-                .select("full_name, email")
-                .eq("id", fb.user_id)
-                .single();
+            (feedback || []).map(async (fb: any) => {
+              // TODO: Get profile from Railway API
 
               return {
                 ...fb,
-                profiles: profile || { full_name: "", email: "" }
+                profiles: { full_name: "", email: "" }
               };
             })
           );
@@ -124,18 +96,12 @@ export default function AdminDeliverableVersions() {
 
   const handleDownload = async (version: Version) => {
     try {
-      const { data, error } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from(version.storage_bucket)
-        .download(version.file_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = version.file_name;
-      a.click();
-      URL.revokeObjectURL(url);
+      // TODO: Implement R2 storage download
+      if (version.file_path) {
+        window.open(version.file_path, '_blank');
+        return;
+      }
+      throw new Error('File path not available');
     } catch (error: any) {
       toast({
         title: "Download failed",

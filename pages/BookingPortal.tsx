@@ -123,14 +123,8 @@ const BookingPortal = () => {
 
   const loadApprovedBooking = async () => {
     try {
-      const { data, error } = await supabase
-        .from("custom_booking_requests")
-        .select("*")
-        .eq("approval_token", approvalToken)
-        .in("status", ["approved", "countered"])
-        .single();
-
-      if (error) throw error;
+      const { data: bookings } = await api.getBookings();
+      const data = bookings?.find((b: any) => b.approval_token === approvalToken);
 
       if (data) {
         setApprovedBooking(data);
@@ -233,9 +227,7 @@ const BookingPortal = () => {
     setIsProcessing(true);
     try {
       // Direct database insert
-      const { error } = await supabase
-        .from('custom_booking_requests')
-        .insert({
+      const { error } = await api.createBooking({
           client_name: formData.name,
           client_email: formData.email,
           client_phone: formData.phone,

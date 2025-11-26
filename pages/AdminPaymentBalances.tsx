@@ -43,23 +43,46 @@ export default function AdminPaymentBalances() {
     setLoading(true);
     try {
       // Load payment summary view
-      const { data: summaryData, error: summaryError } = await supabase
-        .from("payment_summary")
-        .select("*")
-        .order("final_payment_due", { ascending: true, nullsFirst: false });
+      // Get bookings and payments to calculate summaries
+      const { data: bookingsData } = await api.getBookings();
+      const approvedBookings = (bookingsData || []).filter((b: any) => 
+        b.status === 'approved' || b.status === 'countered'
+      );
 
-      if (summaryError) throw summaryError;
+      // Get all payments
+      const { data: allPayments } = await api.getPayments();
 
-      // Load full booking details for payment link generation
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from("custom_booking_requests")
-        .select("*")
-        .in("status", ["approved", "countered"]);
+      // Calculate payment summaries for each booking
+      const summaries = approvedBookings.map((booking: any) => {
+        const bookingPayments = (allPayments || []).filter((p: any) => p.booking_id === booking.id);
+        const totalPaid = bookingPayments
+          .filter((p: any) => p.status === 'succeeded' || p.status === 'paid')
+          .reduce((sum: number, p: any) => sum + parseFloat(String(p.amount)), 0);
+        
+        return {
+          booking_id: booking.id,
+          client_name: booking.client_name,
+          client_email: booking.client_email,
+          booking_status: booking.status,
+          total_price: booking.approved_price || booking.requested_price,
+          total_paid: totalPaid,
+          outstanding_balance: (booking.approved_price || booking.requested_price) - totalPaid,
+          deposit_paid: booking.deposit_paid,
+          full_payment_received: booking.full_payment_received,
+          shoot_date: booking.booking_date,
+          final_payment_due_date: null,
+          project_payment_status: booking.status,
+          deposit_paid_date: booking.deposit_paid_at,
+          final_paid_date: booking.full_payment_received_at,
+          final_payment_due: null
+        };
+      });
 
-      if (bookingsError) throw bookingsError;
+      // Sort by outstanding balance descending
+      summaries.sort((a, b) => b.outstanding_balance - a.outstanding_balance);
 
-      setPaymentSummaries(summaryData || []);
-      setBookings(bookingsData || []);
+      setPaymentSummaries(summaries);
+      setBookings(approvedBookings);
     } catch (error: any) {
       toast({
         title: "Error loading payment data",

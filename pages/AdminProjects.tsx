@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, CheckCircle2, AlertCircle, Play, Pause, Folder, DollarSign, User, Video, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
@@ -62,14 +63,12 @@ export default function AdminProjects() {
   }, []);
 
   const loadProjects = async () => {
-    const { data, error } = await supabase
-      .from("projects")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
+    try {
+      const data = await railwayApi.projects.getAll();
       setProjects(data);
       updateProjectStats(data);
+    } catch (error) {
+      console.error('Error loading projects:', error);
     }
   };
 
@@ -82,37 +81,21 @@ export default function AdminProjects() {
   };
 
   const loadBookings = async () => {
-    const { data } = await supabase
-      .from("custom_booking_requests")
-      .select("*")
-      .eq("status", "approved")
-      .is("deleted_at", null);
-
-    if (data) {
-      setBookings(data);
+    try {
+      const data = await railwayApi.bookings.getAll();
+      setBookings(data.filter(b => b.status === 'approved' && !b.deleted_at));
+    } catch (error) {
+      console.error('Error loading bookings:', error);
     }
   };
 
   const loadClientAccounts = async () => {
-    // Only load active clients (those with projects or approved bookings)
-    const { data: clientData } = await supabase
-      .from("client_accounts")
-      .select("*")
-      .or("project_id.not.is.null,booking_id.not.is.null");
-    
-    if (clientData) {
-      // Fetch profile data for each client
-      const clientsWithProfiles = await Promise.all(
-        clientData.map(async (client) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .eq("id", client.user_id)
-            .single();
-          return { ...client, profiles: profile };
-        })
-      );
-      setClientAccounts(clientsWithProfiles);
+    try {
+      const data = await railwayApi.clients.getAll();
+      // Only include clients with projects or bookings
+      setClientAccounts(data.filter(c => c.project_id || c.booking_id));
+    } catch (error) {
+      console.error('Error loading clients:', error);
     }
   };
 
@@ -136,22 +119,15 @@ export default function AdminProjects() {
   };
 
   const updateProjectStatus = async (id: string, status: string) => {
-    const { error } = await supabase
-      .from("projects")
-      .update({ status })
-      .eq("id", id);
-
-    if (!error) {
-      // Update local state immediately
-      const updatedProjects = projects.map(p => 
-        p.id === id ? { ...p, status } : p
-      );
-      setProjects(updatedProjects);
-      updateProjectStats(updatedProjects);
-      
-      toast({ title: "Project status updated" });
-    } else {
-      toast({ title: "Failed to update status", variant: "destructive" });
+    try {
+      await railwayApi.projects.update(id, { status });
+      loadProjects();
+      toast({
+        title: "Success",
+        description: "Project status updated",
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
     }
   };
 
@@ -171,20 +147,14 @@ export default function AdminProjects() {
     try {
       const { data: user, error: authError } = await api.getCurrentUser();
       
-      const { error } = await supabase
-        .from('meetings')
-        .insert({
-          project_id: selectedProject.id,
-          client_id: clientAccount.id,
-          title: meetingForm.title,
-          description: meetingForm.description,
-          scheduled_date: meetingForm.scheduledAt,
-          duration_minutes: meetingForm.durationMinutes,
-          meeting_type: 'planning',
-          created_by: user?.id,
-        });
-
-      if (error) throw error;
+      await railwayApi.meetings.create({
+        project_id: selectedProject.id,
+        title: meetingForm.title,
+        description: meetingForm.description,
+        scheduled_at: meetingForm.scheduledAt,
+        duration_minutes: meetingForm.durationMinutes,
+        status: 'scheduled'
+      });
 
       toast({ title: "Meeting scheduled successfully" });
       setScheduleMeetingDialog(false);
@@ -201,35 +171,15 @@ export default function AdminProjects() {
       // If user wants to delete files, delete them first
       if (deleteFiles) {
         // Get all files for this project
-        const { data: files } = await supabase
-          .from("project_files")
-          .select("*")
-          .eq("project_id", projectToDelete.id);
-
-        if (files && files.length > 0) {
-          // Delete files from storage
-          for (const file of files) {
-            const [bucket, ...pathParts] = file.file_path.split("/");
-            const path = pathParts.join("/");
-            
-            // TODO: Replace with R2 storage - supabase.storage.from(bucket).remove([path]);
-          }
-
-          // Delete file records
-          await supabase
-            .from("project_files")
-            .delete()
-            .eq("project_id", projectToDelete.id);
-        }
+        // TODO: Implement file deletion via Railway API
+        // const files = await railwayApi.files.getByProjectId(projectToDelete.id);
+        // for (const file of files) {
+        //   await railwayApi.files.delete(file.id);
+        // }
       }
 
       // Delete the project
-      const { error } = await supabase
-        .from("projects")
-        .delete()
-        .eq("id", projectToDelete.id);
-
-      if (error) throw error;
+      await railwayApi.projects.delete(projectToDelete.id);
 
       toast({ title: "Project deleted successfully" });
       loadProjects();
@@ -275,32 +225,11 @@ export default function AdminProjects() {
 
       console.log('Inserting project:', projectInsertData);
 
-      const { data: projectData, error: projectError } = await supabase
-        .from("projects")
-        .insert(projectInsertData)
-        .select()
-        .single();
-
-      if (projectError) {
-        console.error('Project insert error:', projectError);
-        throw projectError;
-      }
+      const projectData = await railwayApi.projects.create(projectInsertData);
 
       // If a client is selected, link the project to them
       if (newProject.client_id && projectData) {
-        const { error: updateError } = await supabase
-          .from("client_accounts")
-          .update({ project_id: projectData.id })
-          .eq("id", newProject.client_id);
-
-        if (updateError) {
-          console.error("Error linking project to client:", updateError);
-          toast({ 
-            title: "Project created but client link failed", 
-            description: updateError.message, 
-            variant: "destructive" 
-          });
-        }
+        await railwayApi.clients.update(newProject.client_id, { project_id: projectData.id });
       }
 
       toast({ title: "Project created successfully" });

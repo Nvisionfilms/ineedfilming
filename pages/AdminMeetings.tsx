@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, Video, Mail, User, Loader2, ExternalLink, Edit, Tag, Trash2 } from "lucide-react";
 import { format, isPast, isFuture } from "date-fns";
@@ -55,38 +55,17 @@ export default function AdminMeetings() {
     loadMeetings();
   }, []);
 
-  // Real-time subscription
+  // TODO: Implement real-time updates with WebSocket or polling
   useEffect(() => {
-    const channel = supabase
-      .channel('meetings-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'meetings'
-        },
-        () => {
-          console.log('Meeting change detected, reloading...');
-          loadMeetings();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      // Real-time removed - can add WebSocket later
-    };
+    // Placeholder for real-time subscription
   }, []);
 
   const loadMeetings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("meetings")
-        .select("*")
-        .order("scheduled_at", { ascending: true });
+      const data = await railwayApi.meetings.getAll();
 
-      if (error) throw error;
+      if (data.error) throw data.error;
       setMeetings(data || []);
     } catch (error: any) {
       toast({
@@ -120,16 +99,7 @@ export default function AdminMeetings() {
     try {
       console.log("🗑️ Deleting meeting:", meetingToDelete.id);
 
-      const { error } = await supabase
-        .from("meetings")
-        .delete()
-        .eq("id", meetingToDelete.id);
-
-      if (error) {
-        console.error("❌ Error deleting meeting:", error);
-        throw error;
-      }
-
+      await railwayApi.meetings.delete(meetingToDelete.id);
       console.log("✅ Meeting deleted successfully");
 
       toast({
@@ -171,17 +141,14 @@ export default function AdminMeetings() {
       const scheduledDateTime = new Date(editForm.date);
       scheduledDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const { error } = await supabase
-        .from("meetings")
-        .update({
-          title: editForm.title,
-          scheduled_at: scheduledDateTime.toISOString(),
-          duration_minutes: editForm.duration_minutes,
-          meeting_link: editForm.meeting_link,
-          description: editForm.description || null,
-          meeting_outcome: editForm.meeting_outcome || null,
-        })
-        .eq("id", selectedMeeting.id);
+      await railwayApi.meetings.update(selectedMeeting.id, {
+        title: editForm.title,
+        description: editForm.description,
+        scheduled_at: scheduledDateTime.toISOString(),
+        duration_minutes: editForm.duration_minutes,
+        meetingLink: editForm.meetingLink,
+        meeting_outcome: editForm.meeting_outcome,
+      });
 
       if (error) {
         console.error("❌ Error updating meeting:", error);
@@ -207,16 +174,10 @@ export default function AdminMeetings() {
         if (newStage) {
           console.log(`📊 Changing stage to: ${newStage}`);
           
-          const { error: oppError } = await supabase
-            .from("opportunities")
-            .update({ stage: newStage })
-            .eq("id", selectedMeeting.opportunity_id);
-
-          if (oppError) {
-            console.error("❌ Error updating opportunity:", oppError);
-          } else {
-            console.log("✅ Opportunity stage updated!");
-          }
+          await railwayApi.opportunities.update(selectedMeeting.opportunity_id, { 
+            stage: newStage 
+          });
+          console.log("✅ Opportunity stage updated!");
         }
       } else if (editForm.meeting_outcome) {
         console.warn("⚠️ Meeting outcome set but no opportunity_id linked");

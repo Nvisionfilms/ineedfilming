@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,21 +27,14 @@ export default function AdminDeliverableUpload() {
 
   const loadData = async () => {
     try {
-      const { data: deliverableData, error: deliverableError } = await supabase
-        .from("deliverables")
-        .select("*, projects(project_name)")
-        .eq("id", id)
-        .single();
-
-      if (deliverableError) throw deliverableError;
+      const deliverableData = await railwayApi.deliverables.getById(id);
       setDeliverable(deliverableData);
 
-      const { data: versions } = await supabase
-        .from("deliverable_versions")
-        .select("version_number")
-        .eq("deliverable_id", id)
-        .order("version_number", { ascending: false })
-        .limit(1);
+      // TODO: Add versions endpoint
+      const allDeliverables = await railwayApi.deliverables.getAll();
+      const versions = allDeliverables
+        .filter(d => d.deliverable_id === id)
+        .sort((a, b) => b.version_number - a.version_number);
 
       setNextVersion((versions?.[0]?.version_number || 0) + 1);
     } catch (error: any) {
@@ -67,22 +60,13 @@ export default function AdminDeliverableUpload() {
 
     setUploading(true);
     try {
-      const { data: user, error: authError } = await api.getCurrentUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Upload file to storage
       const filePath = `${deliverable.project_id}/${id}/v${nextVersion}-${file.name}`;
-      const { error: uploadError } = /* TODO: R2 storage */ null as any // supabase.storage
-        .from("project-deliverables")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
+      // TODO: Implement R2 storage upload
+      // await railwayApi.files.upload(file, { deliverable_id: id });
 
       // Determine status based on revision count
-      const { data: versions } = await supabase
-        .from("deliverable_versions")
-        .select("version_number")
-        .eq("deliverable_id", id);
+      const allDeliverables = await railwayApi.deliverables.getAll();
+      const versions = allDeliverables.filter(d => d.deliverable_id === id);
 
       const revisionCount = versions?.length || 0;
       const status = revisionCount >= deliverable.max_revisions 
@@ -90,23 +74,16 @@ export default function AdminDeliverableUpload() {
         : "pending_review";
 
       // Create version record
-      const { error: versionError } = await supabase
-        .from("deliverable_versions")
-        .insert({
-          deliverable_id: id,
-          version_number: nextVersion,
-          file_path: filePath,
-          file_name: file.name,
-          file_size_bytes: file.size,
-          file_type: file.type.split('/')[0],
-          mime_type: file.type,
-          storage_bucket: "project-deliverables",
-          status: status,
-          uploaded_by: user.id,
-          notes: notes || null
-        });
-
-      if (versionError) throw versionError;
+      await railwayApi.deliverables.create({
+        deliverable_id: id,
+        version_number: nextVersion,
+        file_name: file.name,
+        file_size_bytes: file.size,
+        file_path: filePath,
+        storage_bucket: "project-deliverables",
+        status: status,
+        notes: notes || null,
+      });
 
       toast({
         title: "Version uploaded",

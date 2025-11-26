@@ -25,23 +25,18 @@ export default function AdminPayments() {
   }, []);
 
   const loadData = async () => {
-    const { data: paymentsData } = await supabase
-      .from("payments")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data: paymentsData } = await api.getPayments();
+    const { data: bookingsData } = await api.getBookings();
+    const { data: projectsData } = await api.getProjects();
+    const { data: clientsData } = await api.getClients();
 
-    const { data: bookingsData } = await supabase
-      .from("custom_booking_requests")
-      .select("*")
-      .is("deleted_at", null);
+    // Sort payments by created_at descending
+    const sortedPayments = (paymentsData || []).sort(
+      (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
-    const { data: projectsData } = await supabase
-      .from("projects")
-      .select("*");
-
-    const { data: clientsData } = await supabase
-      .from("client_accounts")
-      .select("*, profiles(email, full_name)");
+    // Filter out deleted bookings
+    const activeBookings = (bookingsData || []).filter((b: any) => !b.deleted_at);
 
     if (paymentsData && bookingsData && projectsData && clientsData) {
       setPayments(paymentsData);

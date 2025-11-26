@@ -23,82 +23,84 @@ const AdminArchived = () => {
   }, []);
 
   const loadArchivedBookings = async () => {
-    const { data, error } = await supabase
-      .from("custom_booking_requests")
-      .select("*")
-      .not("archived_at", "is", null)
-      .neq("deleted_permanently", true)
-      .order("archived_at", { ascending: false });
-
-    if (error) {
+    try {
+      const { data, error } = await api.getBookings();
+      
+      if (error) throw new Error(error);
+      
+      // Filter for archived bookings (not deleted permanently)
+      const archived = (data || []).filter(
+        (b: any) => b.archived_at && !b.deleted_permanently
+      );
+      
+      // Sort by archived_at descending
+      archived.sort((a: any, b: any) => 
+        new Date(b.archived_at).getTime() - new Date(a.archived_at).getTime()
+      );
+      
+      setArchivedBookings(archived);
+    } catch (error: any) {
       toast({
         title: "Error loading archived bookings",
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      setArchivedBookings(data || []);
     }
   };
 
   const handleUnarchive = async (bookingId: string) => {
-    const { error } = await supabase
-      .from("custom_booking_requests")
-      .update({
+    try {
+      const { error } = await api.updateBooking(bookingId, {
         archived_at: null,
         archived_by: null
-      })
-      .eq("id", bookingId);
-      
-    if (error) {
-      toast({
-        title: "Error restoring booking",
-        description: error.message,
-        variant: "destructive",
       });
-    } else {
+      
+      if (error) throw new Error(error);
+      
       toast({
         title: "Booking restored",
         description: "The booking has been moved back to active bookings",
       });
       loadArchivedBookings();
+    } catch (error: any) {
+      toast({
+        title: "Error restoring booking",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
   const handleDelete = async (bookingId: string) => {
-    // First, remove the booking reference from any projects
-    const { error: projectError } = await supabase
-      .from("projects")
-      .update({ booking_id: null })
-      .eq("booking_id", bookingId);
-    
-    if (projectError) {
-      toast({
-        title: "Error preparing deletion",
-        description: projectError.message,
-        variant: "destructive",
-      });
-      return;
-    }
+    try {
+      // First, get all projects and clear booking_id for any that reference this booking
+      const { data: projects } = await api.getProjects();
+      if (projects) {
+        const affectedProjects = projects.filter((p: any) => p.booking_id === bookingId);
+        for (const project of affectedProjects) {
+          await api.request(`/api/projects/${project.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ booking_id: null })
+          });
+        }
+      }
 
-    // Now delete the booking
-    const { error } = await supabase
-      .from("custom_booking_requests")
-      .delete()
-      .eq("id", bookingId);
+      // Now delete the booking
+      const { error } = await api.deleteBooking(bookingId);
       
-    if (error) {
-      toast({
-        title: "Error deleting booking",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+      if (error) throw new Error(error);
+      
       toast({
         title: "Booking deleted permanently",
         description: "The booking has been removed from the system",
       });
       loadArchivedBookings();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting booking",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

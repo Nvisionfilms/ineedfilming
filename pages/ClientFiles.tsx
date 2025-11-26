@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,11 +55,8 @@ const ClientFiles = () => {
       const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: accountData } = await supabase
-        .from("client_accounts")
-        .select("project_id")
-        .eq("user_id", user.id)
-        .single();
+      const clients = await railwayApi.clients.getAll();
+      const accountData = clients.find(c => c.user_id === user.id);
 
       if (!accountData?.project_id) {
         toast.error("No project assigned to your account");
@@ -68,11 +65,10 @@ const ClientFiles = () => {
 
       setProjectId(accountData.project_id);
 
-      const { data: filesData, error } = await supabase
-        .from("project_files")
-        .select("*")
-        .eq("project_id", accountData.project_id)
-        .order("created_at", { ascending: false });
+      // TODO: Add project_files endpoint
+      const allFiles = await railwayApi.files.getAll();
+      const filesData = allFiles.filter(f => f.project_id === accountData.project_id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       if (error) throw error;
       setFiles(filesData || []);
@@ -95,11 +91,8 @@ const ClientFiles = () => {
       if (!user) throw new Error("Not authenticated");
 
       // Check storage limit before upload
-      const { data: accountData, error: accountError } = await supabase
-        .from("client_accounts")
-        .select("storage_used_gb, storage_limit_gb")
-        .eq("user_id", user.id)
-        .single();
+      const clients = await railwayApi.clients.getAll();
+      const accountData = clients.find(c => c.user_id === user.id);
 
       if (accountError) throw accountError;
 
@@ -138,10 +131,9 @@ const ClientFiles = () => {
       if (dbError) throw dbError;
 
       // Update storage usage
-      const { error: updateError } = await supabase
-        .from("client_accounts")
-        .update({ storage_used_gb: newUsage })
-        .eq("user_id", user.id);
+      await railwayApi.clients.update(accountData.id, { 
+        storage_used_gb: newUsage 
+      });
 
       if (updateError) {
         console.error("Failed to update storage usage:", updateError);
@@ -197,10 +189,7 @@ const ClientFiles = () => {
 
       if (storageError) throw storageError;
 
-      const { error: dbError } = await supabase
-        .from("project_files")
-        .delete()
-        .eq("id", file.id);
+      await railwayApi.files.delete(file.id);
 
       if (dbError) throw dbError;
 

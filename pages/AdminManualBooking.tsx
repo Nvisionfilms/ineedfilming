@@ -114,11 +114,7 @@ export default function AdminManualBooking() {
         bookingData.approved_at = new Date().toISOString();
       }
 
-      const { data: booking, error: bookingError } = await supabase
-        .from("custom_booking_requests")
-        .insert(bookingData)
-        .select()
-        .single();
+      const { data: booking, error: bookingError } = await api.createBooking(bookingData);
 
       if (bookingError) throw bookingError;
 
@@ -169,11 +165,8 @@ export default function AdminManualBooking() {
       const deposit = calculateDeposit(price);
 
       // Get the booking to pass to payment link function
-      const { data: booking, error: fetchError } = await supabase
-        .from("custom_booking_requests")
-        .select("*")
-        .eq("id", createdBookingId)
-        .single();
+      const { data: bookings } = await api.getBookings();
+      const booking = bookings?.find((b: any) => b.id === createdBookingId);
 
       if (fetchError) throw fetchError;
 

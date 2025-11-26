@@ -70,13 +70,10 @@ const AdminClientFiles = () => {
       setLoading(true);
 
       // Fetch client info
-      const { data: clientData, error: clientError } = await supabase
-        .from("client_accounts")
-        .select("*")
-        .eq("id", clientId)
-        .single();
-
-      if (clientError) throw clientError;
+      const { data: clients, error: clientError } = await api.getClients();
+      if (clientError) throw new Error(clientError);
+      
+      const clientData = clients?.find((c: any) => c.id === clientId);
       
       if (!clientData) {
         toast.error("Client not found");
@@ -87,28 +84,25 @@ const AdminClientFiles = () => {
         toast.error("No project assigned to this client");
       }
 
-      // Fetch profile separately (may not exist)
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("email, full_name")
-        .eq("id", clientData.user_id)
-        .maybeSingle();
+      // Fetch user profile for email/name
+      const { data: user } = await api.getCurrentUser();
+      const profileData = user?.id === clientData.user_id ? 
+        { email: user.email, full_name: user.full_name } : undefined;
 
       setClient({
         ...clientData,
-        profiles: profileData || undefined,
+        profiles: profileData,
       });
 
       // Fetch files for the client's project if they have one
       if (clientData.project_id) {
-        const { data: filesData, error: filesError } = await supabase
-          .from("project_files")
-          .select("*")
-          .eq("project_id", clientData.project_id)
-          .order("created_at", { ascending: false });
-
-        if (filesError) throw filesError;
-        setFiles(filesData || []);
+        const { data: filesData, error: filesError } = await api.getFiles(clientData.project_id);
+        if (filesError) throw new Error(filesError);
+        
+        const sortedFiles = (filesData || []).sort(
+          (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setFiles(sortedFiles);
       }
     } catch (error: any) {
       console.error("Error loading data:", error);
@@ -201,12 +195,9 @@ const AdminClientFiles = () => {
 
       if (storageError) throw storageError;
 
-      const { error: dbError } = await supabase
-        .from("project_files")
-        .delete()
-        .eq("id", file.id);
-
-      if (dbError) throw dbError;
+      // Delete from Railway API
+      const response = await api.request(`/api/files/${file.id}`, { method: 'DELETE' });
+      if (response.error) throw new Error(response.error);
 
       toast.success("File deleted");
       fetchClientAndFiles();

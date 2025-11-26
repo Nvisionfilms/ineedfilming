@@ -56,27 +56,10 @@ const AdminBookings = () => {
     loadMeetings();
   }, []);
 
-  // Real-time subscription for meetings
+  // TODO: Add real-time updates with WebSocket or polling
+  // Real-time subscription removed during Railway migration
   useEffect(() => {
-    const channel = supabase
-      .channel('meetings-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'meetings'
-        },
-        () => {
-          console.log('Meeting change detected, reloading...');
-          loadMeetings();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      // Real-time removed - can add WebSocket later
-    };
+    // Placeholder for future real-time implementation
   }, []);
 
 

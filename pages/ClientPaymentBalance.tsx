@@ -54,39 +54,50 @@ export default function ClientPaymentBalance() {
       if (!user) throw new Error("Not authenticated");
 
       // Get client account
-      const { data: clientAccount, error: accountError } = await supabase
-        .from("client_accounts")
-        .select("*, custom_booking_requests!booking_id(*)")
-        .eq("user_id", user.id)
-        .single();
-
-      if (accountError) throw accountError;
+      const { data: clients } = await api.getClients();
+      const clientAccount = clients?.find((c: any) => c.user_id === user.id);
 
       if (!clientAccount?.booking_id) {
         setLoading(false);
         return;
       }
 
-      // Get payment summary for this booking
-      const { data: summaryData, error: summaryError } = await supabase
-        .from("payment_summary")
-        .select("*")
-        .eq("booking_id", clientAccount.booking_id)
-        .single();
-
-      if (summaryError && summaryError.code !== "PGRST116") throw summaryError;
+      // Get booking details
+      const { data: bookings } = await api.getBookings();
+      const booking = bookings?.find((b: any) => b.id === clientAccount.booking_id);
 
       // Get all payments for this booking
-      const { data: paymentsData, error: paymentsError } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("booking_id", clientAccount.booking_id)
-        .order("created_at", { ascending: false });
+      const { data: paymentsData } = await api.getPayments(clientAccount.booking_id);
+      
+      // Sort payments by created_at descending
+      const sortedPayments = (paymentsData || []).sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
-      if (paymentsError) throw paymentsError;
+      // Calculate payment summary from booking and payments
+      const totalPaid = sortedPayments
+        .filter((p: any) => p.status === 'succeeded' || p.status === 'paid')
+        .reduce((sum: number, p: any) => sum + parseFloat(String(p.amount)), 0);
+      
+      const summaryData = booking ? {
+        booking_id: booking.id,
+        client_name: booking.client_name,
+        client_email: booking.client_email,
+        total_price: booking.approved_price || booking.requested_price,
+        total_paid: totalPaid,
+        outstanding_balance: (booking.approved_price || booking.requested_price) - totalPaid,
+        deposit_paid: booking.deposit_paid,
+        full_payment_received: booking.full_payment_received,
+        shoot_date: booking.booking_date,
+        final_payment_due_date: null,
+        project_payment_status: booking.status,
+        deposit_paid_date: booking.deposit_paid_at,
+        final_paid_date: booking.full_payment_received_at,
+        final_payment_due: null
+      } : null;
 
       setPaymentInfo(summaryData);
-      setPayments(paymentsData || []);
+      setPayments(sortedPayments);
     } catch (error: any) {
       console.error("Error loading payment info:", error);
       toast({

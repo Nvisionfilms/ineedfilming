@@ -21,7 +21,7 @@ router.get('/', authenticate, requireAdmin, async (req: AuthRequest, res: Respon
         ca.created_at,
         u.email,
         u.full_name,
-        p.title as project_name
+        p.project_name as project_name
        FROM client_accounts ca
        JOIN users u ON ca.user_id = u.id
        LEFT JOIN projects p ON ca.project_id = p.id

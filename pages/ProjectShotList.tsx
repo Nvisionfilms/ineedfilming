@@ -73,17 +73,14 @@ export default function ProjectShotList() {
 
   const fetchShotLists = async () => {
     try {
-      const { data, error } = await supabase
-        .from("shot_lists")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false });
+      const { data, error } = await api.getShotLists(projectId!);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
-      setShotLists(data || []);
-      if (data && data.length > 0 && !selectedList) {
-        setSelectedList(data[0].id);
+      const lists = (data as ShotList[]) || [];
+      setShotLists(lists);
+      if (lists.length > 0 && !selectedList) {
+        setSelectedList(lists[0].id);
       }
     } catch (error: any) {
       toast({
@@ -98,14 +95,10 @@ export default function ProjectShotList() {
 
   const fetchShotItems = async (listId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("shot_list_items")
-        .select("*")
-        .eq("shot_list_id", listId)
-        .order("sort_order", { ascending: true });
+      const { data, error } = await api.getShotListItems(listId);
 
-      if (error) throw error;
-      setShotItems(data || []);
+      if (error) throw new Error(error);
+      setShotItems((data as ShotListItem[]) || []);
     } catch (error: any) {
       toast({
         title: "Error loading shots",
@@ -127,18 +120,14 @@ export default function ProjectShotList() {
 
     setIsCreating(true);
     try {
-      const { data, error } = await supabase
-        .from("shot_lists")
-        .insert({
-          project_id: projectId,
-          name: newListName,
-          description: newListDescription || null,
-          status: "pending",
-        })
-        .select()
-        .single();
+      const { data, error } = await api.createShotList({
+        project_id: projectId,
+        name: newListName,
+        description: newListDescription || null,
+        status: "pending",
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast({
         title: "Shot list created!",
@@ -148,7 +137,10 @@ export default function ProjectShotList() {
       setNewListName("");
       setNewListDescription("");
       fetchShotLists();
-      setSelectedList(data.id);
+      const created = data as ShotList | undefined;
+      if (created?.id) {
+        setSelectedList(created.id);
+      }
     } catch (error: any) {
       toast({
         title: "Error creating shot list",
@@ -202,12 +194,9 @@ export default function ProjectShotList() {
 
   const updateShotStatus = async (shotId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from("shot_list_items")
-        .update({ status })
-        .eq("id", shotId);
+      const { error } = await api.updateShotListItem(selectedList!, shotId, { status });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast({
         title: "Status updated",
@@ -228,12 +217,9 @@ export default function ProjectShotList() {
     if (!confirm("Are you sure you want to delete this shot?")) return;
 
     try {
-      const { error } = await supabase
-        .from("shot_list_items")
-        .delete()
-        .eq("id", shotId);
+      const { error } = await api.deleteShotListItem(selectedList!, shotId);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast({
         title: "Shot deleted",

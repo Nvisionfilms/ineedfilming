@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,12 +81,7 @@ export default function AdminEpisodePlanner() {
 
   const loadProjects = async () => {
     try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("id, project_name, client_id")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const data = await railwayApi.projects.getAll();
       setProjects(data || []);
       
       if (data && data.length > 0) {
@@ -101,15 +96,9 @@ export default function AdminEpisodePlanner() {
 
   const loadClients = async () => {
     try {
-      // Only load active clients (those with projects or approved bookings)
-      const { data, error } = await supabase
-        .from("client_accounts")
-        .select("id, company_name, user_id, project_id, booking_id")
-        .or("project_id.not.is.null,booking_id.not.is.null")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setClients(data || []);
+      const data = await railwayApi.clients.getAll();
+      // Only include clients with projects or bookings
+      setClients(data.filter(c => c.project_id || c.booking_id) || []);
     } catch (error: any) {
       console.error("Error loading clients:", error.message);
     }
@@ -117,20 +106,7 @@ export default function AdminEpisodePlanner() {
 
   const loadEpisodes = async (projectId: string) => {
     try {
-      // Note: You'll need to create an 'episodes' table in Supabase
-      // For now, this is a placeholder structure
-      const { data, error } = await supabase
-        .from("episodes")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("episode_number", { ascending: true });
-
-      if (error) {
-        // Table might not exist yet
-        console.log("Episodes table not found - create it in Supabase");
-        setEpisodes([]);
-        return;
-      }
+      const data = await railwayApi.episodes.getByProjectId(projectId);
 
       setEpisodes(data || []);
     } catch (error: any) {
@@ -166,19 +142,10 @@ export default function AdminEpisodePlanner() {
       };
 
       if (editingEpisode) {
-        const { error } = await supabase
-          .from("episodes")
-          .update(episodeData)
-          .eq("id", editingEpisode.id);
-
-        if (error) throw error;
+        await railwayApi.episodes.update(editingEpisode.id, episodeData);
         toast.success("Episode updated successfully!");
       } else {
-        const { error } = await supabase
-          .from("episodes")
-          .insert([episodeData]);
-
-        if (error) throw error;
+        await railwayApi.episodes.create(episodeData);
         toast.success("Episode created successfully!");
       }
 
@@ -194,12 +161,7 @@ export default function AdminEpisodePlanner() {
     if (!confirm("Are you sure you want to delete this episode?")) return;
 
     try {
-      const { error } = await supabase
-        .from("episodes")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await railwayApi.episodes.delete(id);
       toast.success("Episode deleted successfully!");
       loadEpisodes(selectedProject);
     } catch (error: any) {
@@ -347,14 +309,16 @@ export default function AdminEpisodePlanner() {
               <div>
                 <Label>Assign to Client (Optional)</Label>
                 <Select 
-                  value={formData.client_id} 
-                  onValueChange={(val) => setFormData({ ...formData, client_id: val })}
+                  value={formData.client_id || "none"}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, client_id: val === "none" ? "" : val })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="No client assigned" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No client assigned</SelectItem>
+                    <SelectItem value="none">No client assigned</SelectItem>
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.company_name || `Client ${client.id.slice(0, 8)}`}

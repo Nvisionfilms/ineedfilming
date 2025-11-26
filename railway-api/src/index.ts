@@ -7,12 +7,16 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 
 // Database connection pool
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: false,
+  // Use SSL for external Railway connection
+  ssl: {
+    rejectUnauthorized: false,
+  },
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
@@ -28,11 +32,14 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// Middleware
+// Middleware - allow frontend and local dev via dynamic origin
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: true, // reflect request origin
   credentials: true,
 }));
+
+// Handle CORS preflight for all routes
+app.options('*', cors({ origin: true, credentials: true }));
 
 // Stripe webhook needs raw body
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));

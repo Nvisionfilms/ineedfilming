@@ -18,11 +18,9 @@ export default function AdminAuditLogs() {
   }, []);
 
   const loadLogs = async () => {
-    const { data, error } = await supabase
-      .from("admin_audit_log" as any)
-      .select("*")
-      .order("accessed_at", { ascending: false })
-      .limit(500);
+    // TODO: Add audit logs endpoint to Railway API
+    const data: any[] = [];
+    const error = null;
 
     if (!error && data) {
       setLogs(data);

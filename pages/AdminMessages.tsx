@@ -101,10 +101,7 @@ const AdminMessages = () => {
 
   const markAsRead = async (messageId: string) => {
     try {
-      const { error } = await supabase
-        .from("client_messages")
-        .update({ read: true, read_at: new Date().toISOString() })
-        .eq("id", messageId);
+      const { error } = await api.markMessageAsRead(messageId);
 
       if (error) throw error;
       fetchMessages();

@@ -27,28 +27,8 @@ const ClientMeetings = () => {
     fetchMeetings();
   }, []);
 
-  // Real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('client-meetings-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'meetings'
-        },
-        () => {
-          console.log('Meeting change detected, reloading...');
-          fetchMeetings();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      // Real-time removed - can add WebSocket later
-    };
-  }, []);
+  // TODO: Add real-time updates with WebSocket or polling
+  // Real-time subscription removed during Railway migration
 
   const fetchMeetings = async () => {
     try {
@@ -60,36 +40,36 @@ const ClientMeetings = () => {
         return;
       }
 
-      // Get client account and associated booking
-      const { data: account, error: accountError } = await supabase
-        .from("client_accounts")
-        .select("id, booking_id, project_id")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .single();
+      // Get client account
+      const { data: clients } = await api.getClients();
+      const account = clients?.find((c: any) => c.user_id === user.id && c.status === "active");
 
-      if (accountError || !account) {
-        console.error("Error fetching client account:", accountError);
+      if (!account) {
+        console.error("Client account not found");
         setLoading(false);
         return;
       }
 
-      // Build query to get all meetings related to this client
-      // This includes meetings linked to:
-      // 1. Their client_id directly
-      // 2. Their booking_id
-      // 3. Their project_id
-      const { data, error } = await supabase
-        .from("meetings")
-        .select("*")
-        .or(`client_id.eq.${account.id},booking_id.eq.${account.booking_id || 'null'},project_id.eq.${account.project_id || 'null'}`)
-        .order("scheduled_at", { ascending: true });
-
+      // Get all meetings and filter for this client
+      const { data: allMeetings, error } = await api.getMeetings();
+      
       if (error) {
         console.error("Error fetching meetings:", error);
         toast.error("Failed to load meetings");
       } else {
-        setMeetings(data || []);
+        // Filter meetings related to this client (by client_id, booking_id, or project_id)
+        const clientMeetings = (allMeetings || []).filter((m: any) => 
+          m.client_id === account.id || 
+          m.booking_id === account.booking_id || 
+          m.project_id === account.project_id
+        );
+        
+        // Sort by scheduled_at ascending
+        clientMeetings.sort((a: any, b: any) => 
+          new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+        );
+        
+        setMeetings(clientMeetings);
       }
     } catch (error) {
       console.error("Error in fetchMeetings:", error);

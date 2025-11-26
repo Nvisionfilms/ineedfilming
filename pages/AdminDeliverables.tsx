@@ -52,36 +52,31 @@ export default function AdminDeliverables() {
 
   const loadData = async () => {
     try {
-      const { data: projectsData } = await supabase
-        .from("projects")
-        .select("id, project_name")
-        .order("project_name");
+      const { data: projectsData } = await api.getProjects();
+      const sortedProjects = (projectsData || []).sort((a: any, b: any) => 
+        (a.project_name || '').localeCompare(b.project_name || '')
+      );
+      setProjects(sortedProjects);
 
-      setProjects(projectsData || []);
+      const { data: deliverablesData, error } = await api.getDeliverables('');
+      if (error) throw new Error(error);
 
-      const { data: deliverablesData, error } = await supabase
-        .from("deliverables")
-        .select(`
-          *,
-          projects (project_name)
-        `)
-        .order("created_at", { ascending: false });
+      // Sort by created_at descending
+      const sorted = (deliverablesData || []).sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
-      if (error) throw error;
-
-      // Get latest version for each deliverable
+      // Attach project names and latest versions
       const deliverablesWithVersions = await Promise.all(
-        (deliverablesData || []).map(async (deliverable) => {
-          const { data: versions } = await supabase
-            .from("deliverable_versions")
-            .select("version_number, status, uploaded_at")
-            .eq("deliverable_id", deliverable.id)
-            .order("version_number", { ascending: false })
-            .limit(1);
-
+        sorted.map(async (deliverable: any) => {
+          const project = sortedProjects.find((p: any) => p.id === deliverable.project_id);
+          
+          // TODO: Add deliverable_versions endpoint to get latest version
+          // For now, just attach project info
           return {
             ...deliverable,
-            latest_version: versions?.[0]
+            projects: project ? { project_name: project.project_name } : { project_name: 'Unknown' },
+            latest_version: undefined
           };
         })
       );
@@ -112,7 +107,7 @@ export default function AdminDeliverables() {
       const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("deliverables").insert({
+      const { error } = await api.createDeliverable({
         project_id: formData.project_id,
         title: formData.title,
         description: formData.description,

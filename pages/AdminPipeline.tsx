@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Mail, Phone, Building, DollarSign, Trash2, Video, Calendar as CalendarIcon, MoreVertical, TrendingUp, AlertCircle, Clock } from "lucide-react";
 import { format, formatDistanceToNow, differenceInDays, isBefore } from "date-fns";
@@ -73,38 +73,16 @@ export default function AdminPipeline() {
     loadOpportunities();
   }, []);
 
-  // Real-time subscription for opportunities
+  // TODO: Implement real-time updates with WebSocket or polling
+  // For now, we'll rely on manual refresh
   useEffect(() => {
-    const channel = supabase
-      .channel('opportunities-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'opportunities'
-        },
-        (payload) => {
-          console.log('Opportunity change detected:', payload);
-          loadOpportunities();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      // Real-time removed - can add WebSocket later
-    };
+    // Placeholder for real-time subscription
+    // Could implement polling here if needed
   }, []);
 
   const loadOpportunities = async () => {
-    const { data, error } = await supabase
-      .from("opportunities")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      setOpportunities(data);
-      
+    try {
+      const data = await railwayApi.opportunities.getAll();
       // Calculate metrics
       const pipelineMetrics = calculatePipelineMetrics(data);
       setMetrics(pipelineMetrics);
@@ -112,19 +90,19 @@ export default function AdminPipeline() {
       // Calculate forecast
       const forecastData = calculateForecast(data, 1);
       setForecast(forecastData);
+      setOpportunities(data);
+    } catch (error: any) {
+      toast({ title: "Error loading opportunities", description: error.message, variant: "destructive" });
     }
   };
 
   const handleCreateOpportunity = async () => {
-    const { error } = await api.createOpportunity({
-      ...newOpportunity,
-      budget_min: newOpportunity.budget_min ? parseFloat(newOpportunity.budget_min) : null,
-      budget_max: newOpportunity.budget_max ? parseFloat(newOpportunity.budget_max) : null,
-    });
-
-    if (error) {
-      toast({ title: "Error", description: error, variant: "destructive" });
-    } else {
+    try {
+      await railwayApi.opportunities.create({
+        ...newOpportunity,
+        budget_min: newOpportunity.budget_min ? parseFloat(newOpportunity.budget_min) : null,
+        budget_max: newOpportunity.budget_max ? parseFloat(newOpportunity.budget_max) : null,
+      });
       toast({ title: "Success", description: "Opportunity created" });
       setIsDialogOpen(false);
       loadOpportunities();
@@ -139,25 +117,18 @@ export default function AdminPipeline() {
         notes: "",
         stage: "new_lead",
       });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-
   const handleDeleteOpportunity = async (id: string) => {
-    const { error } = await supabase
-      .from("opportunities")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast({ 
-        title: "Error deleting opportunity", 
-        description: error.message, 
-        variant: "destructive" 
-      });
-    } else {
+    try {
+      await railwayApi.opportunities.delete(id);
       toast({ title: "Opportunity deleted" });
       loadOpportunities();
+    } catch (error: any) {
+      toast({ title: "Error deleting opportunity", description: error.message, variant: "destructive" });
     }
   };
 
@@ -226,48 +197,32 @@ export default function AdminPipeline() {
       
       console.log("📅 Scheduled date/time:", scheduledDateTime.toISOString());
       
-      const { data: user, error: authError } = await api.getCurrentUser();
+      const { data: user, error: authError } = await railwayApi.getCurrentUser();
       
-      const { error } = await supabase
-        .from('meetings')
-        .insert({
-          project_id: null,
-          client_id: null,
-          booking_id: null,
-          title: meetingData.title,
-          description: meetingData.description || `Meeting with ${selectedOpportunity.contact_name} - ${selectedOpportunity.service_type}`,
-          scheduled_date: scheduledDateTime.toISOString(),
-          duration_minutes: meetingData.durationMinutes,
-          meeting_link: meetingData.meetingLink,
-          meeting_type: 'discovery',
-          created_by: user?.id,
-        });
+      await railwayApi.meetings.create({
+        project_id: null,
+        opportunity_id: selectedOpportunity.id,
+        title: meetingData.title,
+        description: meetingData.description || `Meeting with ${selectedOpportunity.contact_name} - ${selectedOpportunity.service_type}`,
+        scheduled_at: scheduledDateTime.toISOString(),
+        duration_minutes: meetingData.durationMinutes,
+        status: 'scheduled',
+        meeting_link: meetingData.meetingLink
+      });
 
-      if (error) {
-        console.error("❌ Database error:", error);
-        throw error;
-      }
+      // Update opportunity notes with meeting link
+      await railwayApi.opportunities.update(selectedOpportunity.id, {
+        notes: `${selectedOpportunity.notes || ""}
 
-      console.log("✅ Meeting created for opportunity");
+Meeting scheduled: ${format(scheduledDateTime, 'PPpp')}
+Meet link: ${meetingData.meetingLink}`,
+        last_contact: new Date().toISOString()
+      });
 
       toast({
         title: "Meeting scheduled!",
         description: `Meeting created for ${selectedOpportunity.contact_name}`,
       });
-
-      // Update opportunity notes with meeting link
-      const { error: updateError } = await supabase
-        .from("opportunities")
-        .update({
-          notes: `${selectedOpportunity.notes || ""}\n\nMeeting scheduled: ${format(scheduledDateTime, 'PPpp')}\nMeet link: ${meetingData.meetingLink}`,
-        })
-        .eq("id", selectedOpportunity.id);
-
-      if (updateError) {
-        console.error("❌ Error updating opportunity notes:", updateError);
-      } else {
-        console.log("✅ Opportunity notes updated");
-      }
 
       setIsMeetingDialogOpen(false);
       setMeetingData({
@@ -299,36 +254,34 @@ export default function AdminPipeline() {
   };
 
   const updateStageWithActivity = async (id: string, newStage: string) => {
+    // Store old stage for rollback
+    const oldStage = opportunities.find(opp => opp.id === id)?.stage;
+    
     // Optimistic update
     setOpportunities(prev => 
       prev.map(opp => opp.id === id ? { ...opp, stage: newStage } : opp)
     );
 
-    const { error } = await supabase
-      .from("opportunities")
-      .update({ 
+    try {
+      await railwayApi.opportunities.update(id, {
         stage: newStage,
-        stage_changed_at: new Date().toISOString(),
-        days_in_stage: 0
-      })
-      .eq("id", id);
-
-    if (error) {
-      toast({ 
-        title: "Error updating stage", 
-        description: error.message, 
-        variant: "destructive" 
-      });
-      loadOpportunities();
-    } else {
-      // Log activity
-      await supabase.from("opportunity_activities").insert({
-        opportunity_id: id,
-        activity_type: 'stage_change',
-        description: `Stage changed to ${stages.find(s => s.id === newStage)?.label}`,
+        last_contact: new Date().toISOString()
       });
       
-      toast({ title: "Stage updated successfully" });
+      // TODO: Log activity when activity logging endpoint is available
+      // await railwayApi.opportunityActivities.create({
+      //   opportunity_id: id,
+      //   activity_type: 'stage_change',
+      //   description: `Stage changed to ${stages.find(s => s.id === newStage)?.label}`,
+      // });
+    } catch (error: any) {
+      toast({ title: "Error updating stage", description: error.message, variant: "destructive" });
+      // Revert optimistic update
+      if (oldStage) {
+        setOpportunities(prev => 
+          prev.map(opp => opp.id === id ? { ...opp, stage: oldStage } : opp)
+        );
+      }
       loadOpportunities();
     }
   };

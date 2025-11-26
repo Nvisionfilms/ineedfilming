@@ -53,39 +53,39 @@ const ClientDashboard = () => {
       const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const [accountRes, messagesRes, filesRes, meetingsRes] = await Promise.all([
-        supabase
-          .from("client_accounts")
-          .select("*, projects(*)")
-          .eq("user_id", user.id)
-          .single(),
-        supabase
-          .from("client_messages")
-          .select("id")
-          .eq("recipient_id", user.id)
-          .eq("read", false),
-        supabase
-          .from("project_files")
-          .select("category"),
-        supabase
-          .from("meetings")
-          .select("*")
-          .order("scheduled_at", { ascending: true })
-      ]);
+      // Get client account
+      const { data: clients } = await api.getClients();
+      const account = clients?.find((c: any) => c.user_id === user.id);
+      
+      if (!account) throw new Error("Client account not found");
 
-      if (accountRes.error) throw accountRes.error;
+      // Get project
+      const { data: projects } = await api.getProjects();
+      const project = projects?.find((p: any) => p.id === account.project_id);
 
+      // Get unread messages
+      const { data: messages } = await api.getMessages();
+      const unreadMessages = messages?.filter((m: any) => m.recipient_id === user.id && !m.read).length || 0;
+
+      // Get files for stats
+      const { data: files } = account.project_id ? await api.getFiles(account.project_id) : { data: [] };
       const fileStats = {
-        shared: filesRes.data?.filter(f => f.category === "shared").length || 0,
-        private: filesRes.data?.filter(f => f.category === "private").length || 0,
-        deliverables: filesRes.data?.filter(f => f.category === "deliverables").length || 0,
+        shared: files?.filter((f: any) => f.category === "shared").length || 0,
+        private: files?.filter((f: any) => f.category === "private").length || 0,
+        deliverables: files?.filter((f: any) => f.category === "deliverables").length || 0,
       };
 
+      // Get meetings
+      const { data: meetings } = await api.getMeetings();
+      const sortedMeetings = (meetings || []).sort(
+        (a: any, b: any) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+      );
+
       setData({
-        account: accountRes.data,
-        project: accountRes.data.projects,
-        unreadMessages: messagesRes.data?.length || 0,
-        meetings: meetingsRes.data || [],
+        account,
+        project,
+        unreadMessages,
+        meetings: sortedMeetings,
         fileStats,
       });
     } catch (error: any) {
