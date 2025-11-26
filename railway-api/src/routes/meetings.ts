@@ -34,14 +34,17 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
       google_event_id, meet_link
     } = req.body;
 
+    // Extract date from scheduled_at for meeting_date column
+    const meetingDate = scheduled_at ? new Date(scheduled_at).toISOString().split('T')[0] : null;
+
     const result = await pool.query(
       `INSERT INTO meetings (
-        title, description, scheduled_at, duration_minutes,
+        title, description, scheduled_at, meeting_date, duration_minutes,
         meeting_link, location, notes, client_id, project_id,
         google_event_id, meet_link, created_by, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'scheduled')
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'scheduled')
       RETURNING *`,
-      [title, description, scheduled_at, duration_minutes, meeting_link,
+      [title, description, scheduled_at, meetingDate, duration_minutes, meeting_link,
        location, notes, client_id, project_id, google_event_id, meet_link, req.user?.id]
     );
 
