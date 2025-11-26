@@ -111,7 +111,7 @@ export default function ProjectCallSheet() {
         location_id: selectedLocation || null,
         weather_notes: weatherNotes || null,
         special_instructions: specialInstructions || null,
-      });
+      }) });
 
       if (error) throw error;
 
