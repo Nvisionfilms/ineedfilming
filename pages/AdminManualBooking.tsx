@@ -165,10 +165,10 @@ export default function AdminManualBooking() {
       const deposit = calculateDeposit(price);
 
       // Get the booking to pass to payment link function
-      const { data: bookings } = await api.getBookings();
+      const { data: bookings, error: fetchError } = await api.getBookings();
       const booking = bookings?.find((b: any) => b.id === createdBookingId);
 
-      if (fetchError) throw fetchError;
+      if (fetchError) throw new Error(fetchError);
 
       // Create Stripe payment link
       const { data, error } = await api.createCheckoutSession({
