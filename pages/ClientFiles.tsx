@@ -134,7 +134,7 @@ const ClientFiles = () => {
         mime_type: uploadFile.type,
         category: selectedCategory,
         description: uploadDescription || null,
-      });
+      }) });
 
       if (dbError) throw dbError;
 

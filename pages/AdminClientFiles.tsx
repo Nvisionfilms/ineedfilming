@@ -149,7 +149,7 @@ const AdminClientFiles = () => {
         mime_type: uploadFile.type,
         category: uploadCategory,
         description: uploadDescription || null,
-      });
+      }) });
 
       if (dbError) throw dbError;
 

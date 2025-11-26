@@ -178,7 +178,7 @@ export default function ProjectShotList() {
         notes: newShotNotes || null,
         status: "pending",
         sort_order: shotItems.length,
-      });
+      }) });
 
       if (error) throw error;
 
