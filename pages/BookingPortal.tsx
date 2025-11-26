@@ -295,24 +295,24 @@ const BookingPortal = () => {
       }
 
       // Create Stripe checkout session
-      const { data, error: paymentError } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke('create-checkout-session', {
-        body: {
+      const { data, error: paymentError } = await api.createCheckoutSession({
+        amount: paymentAmount,
+        customerEmail: formData.email,
+        customerName: formData.name,
+        metadata: {
           packageId: selectedPackage,
           packageName: selectedPkg?.name,
-          amount: paymentAmount,
           paymentType,
           countdownExpiry: getCountdownExpiry(),
-          bookingDetails: {
-            date: selectedDate ? format(selectedDate, 'PPP') : '',
-            time: selectedTime,
-            ...formData,
-            customPrice: customPrice || null,
-            approvalToken: approvalToken || null
-          }
+          bookingDate: selectedDate ? format(selectedDate, 'PPP') : '',
+          bookingTime: selectedTime,
+          phone: formData.phone,
+          customPrice: customPrice || null,
+          approvalToken: approvalToken || null
         }
       });
 
-      if (paymentError) throw paymentError;
+      if (paymentError) throw new Error(paymentError);
 
       if (data?.url) {
         // Redirect to Stripe checkout
