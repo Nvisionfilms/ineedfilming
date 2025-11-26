@@ -25,8 +25,13 @@ export const MFASetup = () => {
 
   const checkExistingFactors = async () => {
     try {
-      const { data } = await supabase.auth.mfa.listFactors();
-      setExistingFactors(data?.totp || []);
+      const { data } = await api.getMFAStatus();
+      // Railway MFA is simpler - just enabled/disabled
+      if (data?.mfaEnabled) {
+        setExistingFactors([{ status: 'verified' }]);
+      } else {
+        setExistingFactors([]);
+      }
     } catch (error) {
       console.error("Error checking factors:", error);
     }
@@ -37,10 +42,8 @@ export const MFASetup = () => {
     try {
       const unverifiedFactors = existingFactors.filter(f => f.status === "unverified");
       
-      for (const factor of unverifiedFactors) {
-        const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
-        if (error) throw error;
-      }
+      // Railway handles this server-side
+      setExistingFactors([]);
 
       toast({
         title: "Cleared",
@@ -70,10 +73,14 @@ export const MFASetup = () => {
 
     setIsRemoving(true);
     try {
-      for (const factor of existingFactors) {
-        const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
-        if (error) throw error;
+      // Disable MFA via Railway API - requires password
+      const password = prompt('Enter your password to disable 2FA:');
+      if (!password) {
+        setIsRemoving(false);
+        return;
       }
+      const { error } = await api.disableMFA(password);
+      if (error) throw new Error(error);
 
       toast({
         title: "2FA Disabled",
@@ -99,15 +106,13 @@ export const MFASetup = () => {
   const enrollMFA = async () => {
     setIsEnrolling(true);
     try {
-      const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: 'totp',
-      });
+      const { data, error } = await api.enableMFA();
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
-      setQrCode(data.totp.qr_code);
-      setSecret(data.totp.secret);
-      setFactorId(data.id);
+      setQrCode(data.qrCode);
+      setSecret(data.secret);
+      setFactorId('railway-mfa');
       
       toast({
         title: "Scan QR Code",
@@ -145,21 +150,10 @@ export const MFASetup = () => {
 
     setIsVerifying(true);
     try {
-      // First create a challenge
-      const challengeResponse = await supabase.auth.mfa.challenge({ 
-        factorId 
-      });
+      // Railway combines challenge+verify into one step
+      const { data, error } = await api.verifyMFASetup(verifyCode);
 
-      if (challengeResponse.error) throw challengeResponse.error;
-
-      // Then verify the code
-      const verifyResponse = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challengeResponse.data.id,
-        code: verifyCode,
-      });
-
-      if (verifyResponse.error) throw verifyResponse.error;
+      if (error) throw new Error(error);
 
       toast({
         title: "2FA Enabled!",

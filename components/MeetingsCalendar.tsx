@@ -59,24 +59,16 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
     try {
       setLoading(true);
       
-      let query = supabase
-        .from('meetings')
-        .select(`
-          *,
-          custom_booking_requests (
-            client_name,
-            client_email
-          )
-        `)
-        .eq('status', 'scheduled')
-        .order('scheduled_at', { ascending: true });
-
-      // If client role, filter by client_id
+      // Use Railway API
+      const { data, error } = await api.getMeetings();
+      
+      // Filter client-side if needed
+      let filteredData = data || [];
       if (userRole === 'client' && clientId) {
-        query = query.eq('client_id', clientId);
+        filteredData = filteredData.filter((m: any) => m.client_id === clientId);
       }
-
-      const { data, error } = await query;
+      // Filter for scheduled only
+      filteredData = filteredData.filter((m: any) => m.status === 'scheduled');
 
       if (error) throw error;
       setMeetings(data || []);

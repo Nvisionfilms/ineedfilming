@@ -10,7 +10,7 @@ export const ClientNavigation = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await api.logout();
       toast.success("Logged out successfully");
       navigate("/client/login");
     } catch (error: any) {

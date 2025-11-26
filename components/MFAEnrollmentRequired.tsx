@@ -21,15 +21,13 @@ export const MFAEnrollmentRequired = () => {
   const enrollMFA = async () => {
     setIsEnrolling(true);
     try {
-      const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: "totp",
-      });
+      const { data, error } = await api.enableMFA();
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
-      setQrCode(data.totp.qr_code);
-      setSecret(data.totp.secret);
-      setFactorId(data.id);
+      setQrCode(data.qrCode);
+      setSecret(data.secret);
+      setFactorId('railway-mfa');
 
       toast({
         title: "QR Code Generated",
@@ -58,16 +56,10 @@ export const MFAEnrollmentRequired = () => {
 
     setIsVerifying(true);
     try {
-      const challenge = await supabase.auth.mfa.challenge({ factorId });
-      if (challenge.error) throw challenge.error;
+      // Railway combines challenge+verify into one step
+      const { data, error } = await api.verifyMFASetup(verifyCode);
 
-      const verify = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challenge.data.id,
-        code: verifyCode,
-      });
-
-      if (verify.error) throw verify.error;
+      if (error) throw new Error(error);
 
       toast({
         title: "2FA Enabled Successfully",
@@ -88,7 +80,7 @@ export const MFAEnrollmentRequired = () => {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await api.logout();
     navigate("/admin/login");
   };
 

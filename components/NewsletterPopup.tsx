@@ -54,26 +54,17 @@ const NewsletterPopup = () => {
     setIsSubmitting(true);
 
     try {
-      // Direct database insert
-      const { error } = await supabase
-        .from('newsletter_subscribers')
-        .insert({
-          email: email.toLowerCase().trim(),
-          name: name.trim() || null,
-          source: "exit_popup",
-          metadata: {
-            subscribed_from: window.location.pathname,
-          },
-        });
+      // Use Railway API
+      const { error } = await api.subscribeNewsletter(email.toLowerCase().trim(), name.trim() || undefined);
 
       if (error) {
-        if (error.code === '23505') { // Unique constraint violation
+        if (error.includes('already')) {
           toast({
             title: "Already subscribed!",
             description: "You're already on our list!",
           });
         } else {
-          throw error;
+          throw new Error(error);
         }
       } else {
         toast({

@@ -69,23 +69,23 @@ export function AdminLayout() {
 
   const checkAuth = async () => {
     const { data: user, error } = await api.getCurrentUser();
-    if (session?.user) {
-      setUserEmail(session.user.email || "");
+    if (user) {
+      setUserEmail(user.email || "");
       checkMFAStatus();
     }
   };
 
   const checkMFAStatus = async () => {
     try {
-      const { data } = await supabase.auth.mfa.listFactors();
-      setHasMFA(data?.totp && data.totp.length > 0);
+      const { data } = await api.getMFAStatus();
+      setHasMFA(data?.mfaEnabled || false);
     } catch (error) {
       console.error("Error checking MFA status:", error);
     }
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await api.logout();
     navigate("/admin/login");
   };
 
