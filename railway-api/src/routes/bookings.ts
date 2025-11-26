@@ -241,6 +241,11 @@ router.post('/:id/approve', authenticate, requireAdmin, async (req: AuthRequest,
             <a href="${paymentUrl}" style="display: inline-block; background: #22c55e; color: white; padding: 15px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Pay Deposit Now</a>
           </div>
           
+          <p style="font-size: 12px; color: #666; text-align: center; margin-top: 10px;">
+            Or copy and paste this link in your browser:<br/>
+            <a href="${paymentUrl}" style="color: #22c55e; word-break: break-all; font-size: 11px;">${paymentUrl}</a>
+          </p>
+          
           <p style="font-size: 14px; color: #666; text-align: center;">Secure payment powered by Stripe</p>
           <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
         `),
