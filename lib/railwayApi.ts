@@ -3,7 +3,7 @@
  * Centralized API client for all Railway backend calls
  */
 
-const RAILWAY_API_URL = import.meta.env.VITE_RAILWAY_API_URL || 'http://localhost:3000';
+const RAILWAY_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface ApiOptions extends RequestInit {
   requireAuth?: boolean;
