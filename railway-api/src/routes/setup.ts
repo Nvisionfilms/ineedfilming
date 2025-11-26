@@ -29,10 +29,14 @@ router.post('/initialize', async (req, res) => {
     await pool.query(schema);
     console.log('Schema applied successfully');
 
-    // Create admin account with your credentials
-    const email = 'da1unv45@gmail.com';
-    const password = 'BookNvision2026';
-    const fullName = 'Eric Sattler';
+    // Create admin account from request body
+    const { adminEmail, adminPassword, adminName } = req.body;
+    if (!adminEmail || !adminPassword) {
+      return res.status(400).json({ error: 'Admin email and password required' });
+    }
+    const email = adminEmail;
+    const password = adminPassword;
+    const fullName = adminName || 'Admin';
 
     console.log('Creating admin account...');
     const passwordHash = await bcrypt.hash(password, 10);
@@ -50,9 +54,8 @@ router.post('/initialize', async (req, res) => {
       success: true,
       message: 'Database initialized successfully',
       admin: {
-        email: 'da1unv45@gmail.com',
-        password: 'BookNvision2026',
-        note: 'You can now login with these credentials'
+        email: email,
+        note: 'Admin account created. You can now login with your credentials.'
       }
     });
   } catch (error: any) {
