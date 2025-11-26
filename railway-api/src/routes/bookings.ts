@@ -2,10 +2,13 @@ import { Router, Request, Response } from 'express';
 import { pool } from '../index.js';
 import { authenticate, requireAdmin, AuthRequest } from '../middleware/auth.js';
 import { Resend } from 'resend';
+import Stripe from 'stripe';
 
 const router = Router();
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
 const SITE_URL = process.env.SITE_URL || 'https://ineedfilming.com';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://ineedfilming.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'da1unv45@gmail.com';
 const ADMIN_CC = process.env.ADMIN_CC || ''; // Optional CC for admin notifications
 
@@ -176,7 +179,42 @@ router.post('/:id/approve', authenticate, requireAdmin, async (req: AuthRequest,
     const booking = result.rows[0];
     const depositAmount = Math.round(approved_price * 0.5 * 100) / 100; // 50% deposit
 
-    // Send approval email with payment link
+    // Create Stripe checkout session for the deposit
+    let paymentUrl = `${FRONTEND_URL}/booking-portal`; // Fallback
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Video Production Deposit',
+                description: `Deposit for ${booking.client_name} - ${booking.project_details?.substring(0, 100) || 'Video Project'}`,
+              },
+              unit_amount: Math.round(depositAmount * 100), // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${FRONTEND_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${FRONTEND_URL}/booking-portal`,
+        customer_email: booking.client_email,
+        metadata: {
+          bookingId: booking.id,
+          customerName: booking.client_name,
+          customerEmail: booking.client_email,
+          bookingDate: booking.booking_date,
+          bookingTime: booking.booking_time,
+        },
+      });
+      paymentUrl = session.url || paymentUrl;
+    } catch (stripeError) {
+      console.error('Stripe session creation failed:', stripeError);
+    }
+
+    // Send approval email with Stripe payment link
     if (resend && booking.client_email) {
       await resend.emails.send({
         from: 'NVISION FILMS LLC <contact@nvisionfilms.com>',
@@ -200,7 +238,7 @@ router.post('/:id/approve', authenticate, requireAdmin, async (req: AuthRequest,
           ${admin_notes ? `<div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;"><p style="margin: 0; color: #666;"><strong>Note from our team:</strong> ${admin_notes}</p></div>` : ''}
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${SITE_URL}/pay/${booking.id}" style="display: inline-block; background: #22c55e; color: white; padding: 15px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Pay Deposit Now</a>
+            <a href="${paymentUrl}" style="display: inline-block; background: #22c55e; color: white; padding: 15px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Pay Deposit Now</a>
           </div>
           
           <p style="font-size: 14px; color: #666; text-align: center;">Secure payment powered by Stripe</p>
@@ -209,7 +247,7 @@ router.post('/:id/approve', authenticate, requireAdmin, async (req: AuthRequest,
       });
     }
 
-    res.json(booking);
+    res.json({ ...booking, paymentUrl });
   } catch (error) {
     console.error('Approve booking error:', error);
     res.status(500).json({ error: 'Failed to approve booking' });

@@ -9,7 +9,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import railwayApi from "@/lib/railwayApi";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
 import { Phone, Calendar as CalendarIcon, DollarSign, User, Mail, Building, FileText, Loader2, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
@@ -46,6 +48,10 @@ export default function AdminManualBooking() {
     
     // Auto-approve
     auto_approve: true,
+    
+    // Meeting options
+    create_meeting: false,
+    sync_to_calendar: false,
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -128,20 +134,66 @@ export default function AdminManualBooking() {
 
       // If auto-approved, also create opportunity in pipeline
       if (formData.auto_approve) {
-        await api.createOpportunity({
-          booking_id: booking.id,
-          contact_name: formData.client_name,
-          contact_email: formData.client_email,
-          contact_phone: formData.client_phone,
-          company: formData.client_company || null,
-          service_type: formData.project_details?.substring(0, 100) || "Manual Booking",
-          budget_min: price,
-          budget_max: price,
-          notes: formData.admin_notes || `Manual booking created via admin panel`,
-          stage: "won",
-          source: "phone_call",
-          expected_close_date: formData.booking_date ? format(formData.booking_date, 'yyyy-MM-dd') : null,
-        });
+        try {
+          await api.createOpportunity({
+            booking_id: booking.id,
+            contact_name: formData.client_name,
+            contact_email: formData.client_email,
+            contact_phone: formData.client_phone,
+            company: formData.client_company || null,
+            service_type: formData.project_details?.substring(0, 100) || "Manual Booking",
+            budget_min: price,
+            budget_max: price,
+            notes: formData.admin_notes || `Manual booking created via admin panel`,
+            stage: "won",
+            source: "phone_call",
+            expected_close_date: formData.booking_date ? format(formData.booking_date, 'yyyy-MM-dd') : null,
+          });
+        } catch (oppError) {
+          console.log("Opportunity creation skipped:", oppError);
+        }
+      }
+
+      // Create meeting if requested
+      if (formData.create_meeting && formData.booking_date) {
+        try {
+          // Convert time to 24h format for scheduled_at
+          const timeMatch = formData.booking_time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+          let hours = parseInt(timeMatch?.[1] || "10");
+          const minutes = timeMatch?.[2] || "00";
+          const period = timeMatch?.[3]?.toUpperCase();
+          
+          if (period === "PM" && hours !== 12) hours += 12;
+          if (period === "AM" && hours === 12) hours = 0;
+          
+          const scheduledAt = new Date(formData.booking_date);
+          scheduledAt.setHours(hours, parseInt(minutes), 0, 0);
+
+          const meeting = await railwayApi.meetings.create({
+            title: `Meeting with ${formData.client_name}`,
+            description: formData.project_details || `Booking consultation for ${formData.client_name}`,
+            scheduled_at: scheduledAt.toISOString(),
+            duration_minutes: 60,
+            location: "Virtual",
+          });
+
+          // Sync to Google Calendar if requested (this generates Meet link)
+          if (formData.sync_to_calendar && meeting?.id) {
+            try {
+              const calResult = await railwayApi.calendar.syncMeeting(meeting.id);
+              if (calResult?.meetLink) {
+                toast({
+                  title: "Meeting synced to Google Calendar",
+                  description: "Google Meet link generated!",
+                });
+              }
+            } catch (calError) {
+              console.log("Calendar sync skipped:", calError);
+            }
+          }
+        } catch (meetingError) {
+          console.log("Meeting creation skipped:", meetingError);
+        }
       }
 
     } catch (error: any) {
@@ -216,6 +268,8 @@ export default function AdminManualBooking() {
       booking_time: "10:00 AM",
       admin_notes: "",
       auto_approve: true,
+      create_meeting: false,
+      sync_to_calendar: false,
     });
     setBookingCreated(false);
     setCreatedBookingId(null);
@@ -246,13 +300,16 @@ export default function AdminManualBooking() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2">
-              <p className="font-semibold">Booking Details:</p>
+            <div className="p-4 bg-green-950 border border-green-800 rounded-lg space-y-2">
+              <p className="font-semibold text-green-400">Booking Details:</p>
               <p className="text-sm">Client: {formData.client_name}</p>
               <p className="text-sm">Email: {formData.client_email}</p>
               <p className="text-sm">Price: ${parseFloat(formData.requested_price).toLocaleString()}</p>
               <p className="text-sm">Deposit Required: ${depositAmount.toLocaleString()} ({depositPercentage}%)</p>
               <p className="text-sm">Status: {formData.auto_approve ? "Approved" : "Pending Review"}</p>
+              {formData.booking_date && (
+                <p className="text-sm">Date: {format(formData.booking_date, "PPP")} at {formData.booking_time}</p>
+              )}
             </div>
 
             {!paymentLinkGenerated ? (
@@ -546,6 +603,38 @@ export default function AdminManualBooking() {
                   <Label htmlFor="auto_approve" className="cursor-pointer font-normal">
                     Auto-approve this booking (recommended for phone bookings)
                   </Label>
+                </div>
+
+                <div className="border-t pt-4 mt-4 space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">Meeting Options</p>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="create_meeting"
+                      checked={formData.create_meeting}
+                      onChange={(e) => handleInputChange("create_meeting", e.target.checked)}
+                      className="rounded"
+                    />
+                    <Label htmlFor="create_meeting" className="cursor-pointer font-normal">
+                      Create a meeting for this booking (shows on calendar)
+                    </Label>
+                  </div>
+
+                  {formData.create_meeting && (
+                    <div className="flex items-center space-x-2 ml-6">
+                      <input
+                        type="checkbox"
+                        id="sync_to_calendar"
+                        checked={formData.sync_to_calendar}
+                        onChange={(e) => handleInputChange("sync_to_calendar", e.target.checked)}
+                        className="rounded"
+                      />
+                      <Label htmlFor="sync_to_calendar" className="cursor-pointer font-normal">
+                        Sync to Google Calendar (auto-generates Meet link)
+                      </Label>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
