@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { LogOut, Home, FileText, MessageSquare, Settings, Calendar, Video, FolderOpen, Wallet } from "lucide-react";
