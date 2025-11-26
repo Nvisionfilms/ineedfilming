@@ -354,19 +354,13 @@ const AdminClients = () => {
 
     setUpdating(true);
     try {
-      // Call Edge Function to delete both client account and auth user
-      const { data, error } = /* TODO: Railway API */ null as any // supabase.functions.invoke('delete-client-user', {
-        body: { user_id: selectedClient.user_id }
+      // Delete client via Railway API
+      const { error } = await api.request(`/api/clients/${selectedClient.user_id}`, {
+        method: 'DELETE'
       });
 
       if (error) {
-        console.error('Edge Function error:', error);
-        throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
-      }
-      
-      if (data?.error) {
-        console.error('Edge Function returned error:', data.error);
-        throw new Error(`Function returned: ${data.error}`);
+        throw new Error(error);
       }
 
       toast.success("Client and user account deleted successfully");
