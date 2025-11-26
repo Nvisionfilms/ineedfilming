@@ -178,7 +178,7 @@ export default function AdminManualBooking() {
       if (fetchError) throw fetchError;
 
       // Call Edge Function to create payment link
-      const { data, error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke("create-payment-link", {
+      const { data, error } = /* TODO: Railway API */ null as any // supabase.functions.invoke("create-payment-link", {
         body: {
           bookingId: createdBookingId,
           amount: deposit, // Default to deposit

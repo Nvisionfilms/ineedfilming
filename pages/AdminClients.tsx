@@ -233,7 +233,7 @@ const AdminClients = () => {
     setCreating(true);
     try {
       // Call Edge Function to create user (requires service role)
-      const { data, error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke('create-client-user', {
+      const { data, error } = /* TODO: Railway API */ null as any // supabase.functions.invoke('create-client-user', {
         body: {
           email: newClient.email,
           password: newClient.password,
@@ -354,7 +354,7 @@ const AdminClients = () => {
     setUpdating(true);
     try {
       // Call Edge Function to delete both client account and auth user
-      const { data, error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke('delete-client-user', {
+      const { data, error } = /* TODO: Railway API */ null as any // supabase.functions.invoke('delete-client-user', {
         body: { user_id: selectedClient.user_id }
       });
 
