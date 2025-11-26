@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,27 +7,17 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Shield } from "lucide-react";
 
 interface MFAChallengeProps {
-  factorId: string;
-  onSuccess: () => void;
+  onSuccess: (token: string) => void;
 }
 
-export const MFAChallenge = ({ factorId, onSuccess }: MFAChallengeProps) => {
-  const [code, setCode] = useState(() => {
-    // Restore partially entered code from sessionStorage (mobile app switch scenario)
-    return sessionStorage.getItem('mfa_code_input') || "";
-  });
+export const MFAChallenge = ({ onSuccess }: MFAChallengeProps) => {
+  const [code, setCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 
-  // Persist code input to sessionStorage as user types
   const handleCodeChange = (value: string) => {
     const cleanedValue = value.replace(/\D/g, '').slice(0, 6);
     setCode(cleanedValue);
-    if (cleanedValue) {
-      sessionStorage.setItem('mfa_code_input', cleanedValue);
-    } else {
-      sessionStorage.removeItem('mfa_code_input');
-    }
   };
 
   const verifyCode = async () => {
@@ -43,22 +32,12 @@ export const MFAChallenge = ({ factorId, onSuccess }: MFAChallengeProps) => {
 
     setIsVerifying(true);
     try {
-      const { error } = await supabase.auth.mfa.challengeAndVerify({
-        factorId,
-        code,
-      });
-
-      if (error) throw error;
-
-      // Clear persisted code after successful verification
-      sessionStorage.removeItem('mfa_code_input');
-
       toast({
         title: "Verified!",
         description: "Successfully authenticated",
       });
       
-      onSuccess();
+      onSuccess(code);
     } catch (error: any) {
       toast({
         variant: "destructive",

@@ -144,18 +144,23 @@ serve(async (req) => {
 
     try {
       await resend.emails.send({
-        from: "Night Vision <onboarding@resend.dev>",
+        from: "NVISION FILMS LLC <contact@nvisionfilms.com>",
         to: [email],
-        subject: "Welcome to Night Vision Client Portal",
+        subject: "Welcome to NVISION FILMS LLC Client Portal",
         html: `
-          <h1>Welcome to Night Vision Client Portal!</h1>
-          <p>Hi ${full_name || "there"},</p>
-          <p>Your client portal account has been created. Here are your login credentials:</p>
-          <p><strong>Email:</strong> ${email}<br>
-          <strong>Temporary Password:</strong> ${password}</p>
-          <p><a href="${portalUrl}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px; margin: 16px 0;">Login to Portal</a></p>
-          <p><strong>Important:</strong> For security, please change your password after your first login by going to Settings.</p>
-          <p>Best regards,<br>Night Vision Team</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+            </div>
+            <h1>Welcome to NVISION FILMS LLC Client Portal!</h1>
+            <p>Hi ${full_name || "there"},</p>
+            <p>Your client portal account has been created. Here are your login credentials:</p>
+            <p><strong>Email:</strong> ${email}<br>
+            <strong>Temporary Password:</strong> ${password}</p>
+            <p><a href="${portalUrl}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 4px; margin: 16px 0;">Login to Portal</a></p>
+            <p><strong>Important:</strong> For security, please change your password after your first login by going to Settings.</p>
+            <p>Best regards,<br/>NVISION FILMS LLC</p>
+          </div>
         `,
       });
 

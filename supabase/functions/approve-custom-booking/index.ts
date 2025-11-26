@@ -139,6 +139,9 @@ serve(async (req) => {
         subject: "Your Custom Booking Request is Approved!",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+            </div>
             <h1 style="color: #10b981; font-size: 24px; margin-bottom: 20px;">Great news, ${booking.client_name}!</h1>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Your custom booking request has been approved.</p>
             <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
@@ -153,10 +156,10 @@ serve(async (req) => {
               <a href="${origin}/booking-portal?token=${booking.approval_token}" style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Complete Your Booking</a>
             </div>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">This link is unique to you and will pre-fill your approved pricing. Click to proceed to payment.</p>
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="font-size: 12px; color: #999; text-align: center;">
-              New Vision Production | NVision Films<br>
+              NVISION FILMS LLC<br>
               If you have questions, reply to this email.
             </p>
           </div>
@@ -169,6 +172,9 @@ serve(async (req) => {
         subject: "Counter-Offer for Your Custom Booking",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+            </div>
             <h1 style="color: #f59e0b; font-size: 24px; margin-bottom: 20px;">Hi ${booking.client_name},</h1>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Thank you for your custom booking request. After reviewing your project details, here's what I can offer:</p>
             <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
@@ -185,10 +191,10 @@ serve(async (req) => {
               <a href="${origin}/booking-portal?token=${booking.approval_token}" style="display: inline-block; padding: 12px 24px; background: #f59e0b; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Accept & Book Now</a>
             </div>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">If you have questions or would like to discuss further, feel free to reply to this email.</p>
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="font-size: 12px; color: #999; text-align: center;">
-              New Vision Production | NVision Films<br>
+              NVISION FILMS LLC<br>
               If you have questions, reply to this email.
             </p>
           </div>
@@ -201,15 +207,18 @@ serve(async (req) => {
         subject: "Regarding Your Custom Booking Request",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+            </div>
             <h1 style="color: #ef4444; font-size: 24px; margin-bottom: 20px;">Hi ${booking.client_name},</h1>
-            <p style="font-size: 16px; line-height: 1.6; color: #333;">Thank you for your interest in working with New Vision Production.</p>
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">Thank you for your interest in working with NVISION FILMS LLC.</p>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Unfortunately, I'm unable to accommodate your custom booking request at this time.</p>
             ${adminNotes ? `<div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;"><p style="margin: 0; color: #333;"><strong>Note:</strong> ${adminNotes}</p></div>` : ""}
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Please feel free to reach out if you'd like to discuss alternative options or future projects.</p>
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="font-size: 12px; color: #999; text-align: center;">
-              New Vision Production | NVision Films<br>
+              NVISION FILMS LLC<br>
               If you have questions, reply to this email.
             </p>
           </div>

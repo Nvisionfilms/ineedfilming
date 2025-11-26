@@ -215,11 +215,14 @@ serve(async (req) => {
     // Send confirmation email to client using sanitized data
     try {
       const clientEmail = await resend.emails.send({
-        from: "NVision Films <contact@nvisionfilms.com>",
+        from: "NVISION FILMS LLC <contact@nvisionfilms.com>",
       to: [sanitizedData.client_email],
       subject: "Custom Booking Request Received",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+          </div>
           <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Thank you for your custom booking request!</h1>
           <p style="font-size: 16px; line-height: 1.6; color: #333;">Hi ${sanitizedData.client_name},</p>
           <p style="font-size: 16px; line-height: 1.6; color: #333;">We've received your custom booking request and Eric will review it shortly.</p>
@@ -232,10 +235,10 @@ serve(async (req) => {
           </div>
           ${clientType === "commercial" ? `<p style="font-size: 16px; line-height: 1.6; color: #333;"><em>Commercial terms will be discussed based on your project scope.</em></p>` : ""}
           <p style="font-size: 16px; line-height: 1.6; color: #333;">You'll receive an email once your request is reviewed with either an approval or a counter-offer.</p>
-          <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+          <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
           <p style="font-size: 12px; color: #999; text-align: center;">
-            New Vision Production | NVision Films<br>
+            NVISION FILMS LLC<br>
             If you have questions, reply to this email.
           </p>
         </div>

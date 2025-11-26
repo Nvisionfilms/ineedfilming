@@ -122,19 +122,22 @@ const handler = async (req: Request): Promise<Response> => {
     // Send welcome email to subscriber
     try {
       const welcomeEmail = await resend.emails.send({
-        from: "NVision Films <contact@nvisionfilms.com>",
+        from: "NVISION FILMS LLC <contact@nvisionfilms.com>",
         to: [email],
-        subject: "Welcome to New Vision Production",
+        subject: "Welcome to NVISION FILMS LLC",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Welcome to New Vision Production!</h1>
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+            </div>
+            <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Welcome to NVISION FILMS LLC!</h1>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">${name ? `Hi ${name},` : 'Hi there,'}</p>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Thank you for subscribing to our newsletter. We're excited to share updates, project showcases, and exclusive insights with you.</p>
             <p style="font-size: 16px; line-height: 1.6; color: #333;">Stay tuned for our next update!</p>
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="font-size: 12px; color: #999; text-align: center;">
-              New Vision Production | NVision Films<br>
+              NVISION FILMS LLC<br>
               If you wish to unsubscribe, reply to this email.
             </p>
           </div>

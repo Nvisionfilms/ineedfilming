@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,13 +52,9 @@ export default function ProjectLocations() {
 
   const fetchLocations = async () => {
     try {
-      const { data, error } = await supabase
-        .from("locations")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false });
+      const { data, error } = await api.getLocations(projectId!);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
       setLocations(data || []);
     } catch (error: any) {
       toast({
@@ -92,7 +88,7 @@ export default function ProjectLocations() {
 
     setIsCreating(true);
     try {
-      const { error } = await supabase.from("locations").insert({
+      const { error } = await api.createLocation({
         project_id: projectId,
         name,
         address,
@@ -102,7 +98,7 @@ export default function ProjectLocations() {
         notes: notes || null,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast({
         title: "Location added!",
@@ -127,9 +123,9 @@ export default function ProjectLocations() {
     if (!confirm(`Are you sure you want to delete ${locationName}?`)) return;
 
     try {
-      const { error } = await supabase.from("locations").delete().eq("id", locationId);
+      const { error } = await api.deleteLocation(locationId);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast({
         title: "Location deleted",

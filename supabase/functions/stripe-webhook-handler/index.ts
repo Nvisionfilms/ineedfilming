@@ -148,10 +148,13 @@ const handler = async (req: Request): Promise<Response> => {
           await resend.emails.send({
             from: "Eric Sattler <contact@nvisionfilms.com>",
             to: [session.customer_email || metadata?.customerEmail || ''],
-            subject: "Your Client Portal Access - New Vision Production",
+            subject: "Your Client Portal Access - NVISION FILMS LLC",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #10b981;">Welcome to New Vision Production!</h1>
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <img src="https://static.wixstatic.com/media/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png/v1/fill/w_219,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e05d6c_796390cb4e7a447ebd2fa7dc927276c3~mv2.png" alt="NVISION FILMS LLC" style="max-width: 180px; height: auto;" />
+                </div>
+                <h1 style="color: #10b981;">Welcome to NVISION FILMS LLC!</h1>
                 <p>Hi ${metadata?.customerName || 'there'},</p>
                 <p>Thank you for your payment! Your booking is confirmed and we've created your client portal account.</p>
                 <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -170,7 +173,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <li>Communicate with our team</li>
                   <li>Track project milestones</li>
                 </ul>
-                <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>New Vision Production</p>
+                <p style="font-size: 14px; color: #666; margin-top: 30px;">Best regards,<br/>Eric Sattler<br/>NVISION FILMS LLC</p>
               </div>
             `,
           });

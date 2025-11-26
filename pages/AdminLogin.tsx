@@ -4,8 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Shield, Mail, Lock, Eye, EyeOff, UserCircle } from "lucide-react";
 import logo from "@/assets/nvlogo.png";
 import { MFAChallenge } from "@/components/MFAChallenge";
@@ -24,29 +25,26 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loginType, setLoginType] = useState<"admin" | "client">("admin");
-  const [mfaFactorId, setMfaFactorId] = useState<string | null>(() => {
-    // Restore MFA state from sessionStorage on mount (mobile app switch scenario)
-    return sessionStorage.getItem('mfa_factor_id');
-  });
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [tempToken, setTempToken] = useState<string | null>(null);
 
-  // Check if already authenticated
+  // Check if already authenticated and load saved email
   useEffect(() => {
     checkAuth();
+    const savedEmail = localStorage.getItem('admin_remembered_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
   }, []);
 
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      // Check if user has admin role
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .single();
-
-      if (roles) {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      const response = await api.getCurrentUser();
+      if (response.data?.role === 'admin') {
         navigate("/admin/bookings");
       }
     }
@@ -57,76 +55,68 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        // Log failed login attempt
-        await supabase.from("failed_login_attempts" as any).insert({
-          email,
-          reason: error.message,
-        });
-
-        throw error;
+      // Save or clear email based on remember me checkbox
+      if (rememberMe) {
+        localStorage.setItem('admin_remembered_email', email);
+      } else {
+        localStorage.removeItem('admin_remembered_email');
       }
 
-      if (data.user) {
-        // Handle client login
-        if (loginType === "client") {
-          const { data: clientData, error: clientError } = await supabase
-            .from("client_accounts")
-            .select("*")
-            .eq("user_id", data.user.id)
-            .single();
+      const response = await api.login(email, password);
 
-          if (clientError || !clientData) {
-            await supabase.auth.signOut();
-            toast({
-              title: "Access Denied",
-              description: "Invalid client credentials",
-              variant: "destructive",
-            });
-            setIsLoading(false);
-            return;
-          }
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
-          toast({
-            title: "Welcome back!",
-            description: "Successfully signed in.",
-          });
-          navigate("/client/dashboard");
-          return;
-        }
-
-        // Handle admin login with MFA
-        const { data: factors } = await supabase.auth.mfa.listFactors();
-        
-        // Only challenge if there's a verified TOTP factor
-        const verifiedFactor = factors?.totp?.find(f => f.status === 'verified');
-        
-        if (verifiedFactor) {
-          // MFA is enabled and verified, show challenge
-          // Persist to sessionStorage so state survives mobile app switching
-          sessionStorage.setItem('mfa_factor_id', verifiedFactor.id);
-          setMfaFactorId(verifiedFactor.id);
-          setIsLoading(false);
-          return;
-        }
-
-        // TEMPORARY: Allow login without 2FA for initial setup
-        // TODO: Re-enable 2FA requirement after initial admin setup
-        toast({
-          title: "Warning: 2FA Not Enabled",
-          description: "Please enable 2FA in your account settings for security.",
-          variant: "default",
-        });
-        
-        // Continue with login
-        await completeSignIn(data.user.id);
+      // Check if MFA is required
+      if (response.data?.mfaRequired) {
+        setMfaRequired(true);
+        setTempToken(response.data.token);
         setIsLoading(false);
         return;
+      }
+
+      // Check user role
+      const userResponse = await api.getCurrentUser();
+      if (userResponse.error) {
+        throw new Error(userResponse.error);
+      }
+
+      const userRole = userResponse.data?.role;
+
+      // Handle client login
+      if (loginType === "client" && userRole !== "client") {
+        api.clearToken();
+        toast({
+          title: "Access Denied",
+          description: "Invalid client credentials",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Handle admin login
+      if (loginType === "admin" && userRole !== "admin") {
+        api.clearToken();
+        toast({
+          title: "Access Denied",
+          description: "You do not have admin privileges.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast({
+        title: "Welcome back!",
+        description: "Successfully signed in.",
+      });
+
+      if (loginType === "client") {
+        navigate("/client/dashboard");
+      } else {
+        navigate("/admin/bookings");
       }
     } catch (error: any) {
       toast({
@@ -138,36 +128,27 @@ const AdminLogin = () => {
     }
   };
 
-  const completeSignIn = async (userId: string) => {
+  const handleMFAVerify = async (token: string) => {
     try {
-      const { data: roles, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .single();
-
-      if (roleError || !roles) {
-        await supabase.auth.signOut();
-        toast({
-          title: "Access Denied",
-          description: "You do not have admin privileges.",
-          variant: "destructive",
-        });
-        return;
+      const response = await api.verifyMFALogin(token);
+      
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      // Clear MFA state after successful authentication
-      sessionStorage.removeItem('mfa_factor_id');
-      
       toast({
         title: "Welcome back!",
         description: "Successfully signed in.",
       });
-      navigate("/admin/bookings");
+      
+      if (loginType === "client") {
+        navigate("/client/dashboard");
+      } else {
+        navigate("/admin/bookings");
+      }
     } catch (error: any) {
       toast({
-        title: "Authorization failed",
+        title: "Verification failed",
         description: error.message,
         variant: "destructive",
       });
@@ -175,17 +156,11 @@ const AdminLogin = () => {
   };
 
 
-  if (mfaFactorId) {
+  if (mfaRequired) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
         <MFAChallenge
-          factorId={mfaFactorId}
-          onSuccess={async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              await completeSignIn(user.id);
-            }
-          }}
+          onSuccess={handleMFAVerify}
         />
       </div>
     );
@@ -273,6 +248,21 @@ const AdminLogin = () => {
                 )}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="remember"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              disabled={isLoading}
+            />
+            <Label
+              htmlFor="remember"
+              className="text-sm font-normal cursor-pointer"
+            >
+              Remember my email
+            </Label>
           </div>
 
           <Button

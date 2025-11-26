@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -14,28 +15,43 @@ const ClientLogin = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Load saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('client_remembered_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Save or clear email based on remember me checkbox
+      if (rememberMe) {
+        localStorage.setItem('client_remembered_email', email);
+      } else {
+        localStorage.removeItem('client_remembered_email');
+      }
 
-      if (error) throw error;
+      const response = await api.login(email, password);
 
-      // Check if user is a client
-      const { data: clientData, error: clientError } = await supabase
-        .from("client_accounts")
-        .select("*")
-        .eq("user_id", data.user.id)
-        .single();
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
-      if (clientError || !clientData) {
-        await supabase.auth.signOut();
+      // Check user role
+      const userResponse = await api.getCurrentUser();
+      if (userResponse.error) {
+        throw new Error(userResponse.error);
+      }
+
+      if (userResponse.data?.role !== "client") {
+        api.clearToken();
         throw new Error("Invalid client credentials");
       }
 
@@ -85,6 +101,20 @@ const ClientLogin = () => {
                 required
                 disabled={loading}
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                disabled={loading}
+              />
+              <Label
+                htmlFor="remember"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Remember my email
+              </Label>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,62 +33,18 @@ const AdminMessages = () => {
 
   useEffect(() => {
     fetchMessages();
-    const channel = supabase
-      .channel("admin-messages")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "client_messages",
-        },
-        () => fetchMessages()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    // Real-time updates can be added later
+  }, []); 
 
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      
+      const { data: messagesData, error } = await api.getMessages();
 
-      const { data: messagesData, error } = await supabase
-        .from("client_messages")
-        .select("*")
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .order("created_at", { ascending: false });
+      if (error) throw new Error(error);
 
-      if (error) throw error;
-
-      // Fetch sender and recipient profiles
-      const messagesWithProfiles = await Promise.all(
-        (messagesData || []).map(async (msg) => {
-          const { data: senderProfile } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .eq("id", msg.sender_id)
-            .single();
-
-          const { data: recipientProfile } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .eq("id", msg.recipient_id)
-            .single();
-
-          return { 
-            ...msg, 
-            sender_profile: senderProfile,
-            recipient_profile: recipientProfile 
-          };
-        })
-      );
-
-      setMessages(messagesWithProfiles);
+      setMessages(messagesData || []);
     } catch (error: any) {
       toast({
         title: "Error loading messages",

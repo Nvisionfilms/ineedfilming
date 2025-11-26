@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,70 +32,27 @@ const ClientMessages = () => {
 
   useEffect(() => {
     fetchMessages();
-    const channel = supabase
-      .channel("client-messages")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "client_messages",
-        },
-        () => fetchMessages()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Real-time updates can be added later
   }, []);
 
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      
+      // Get messages from API
+      const { data: messagesData, error } = await api.getMessages();
 
-      // Get admin user ID
-      const { data: adminData, error: adminError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin")
-        .limit(1)
-        .maybeSingle();
+      if (error) throw new Error(error);
 
-      if (adminError) {
-        console.error("Error fetching admin:", adminError);
+      // Set admin ID from first message if available
+      if (messagesData && messagesData.length > 0) {
+        const firstAdminMessage = messagesData.find((m: any) => m.sender_profile?.role === 'admin');
+        if (firstAdminMessage) {
+          setAdminId(firstAdminMessage.sender_id);
+        }
       }
 
-      if (adminData) {
-        setAdminId(adminData.user_id);
-      } else {
-        console.warn("No admin user found in user_roles table");
-      }
-
-      const { data: messagesData, error } = await supabase
-        .from("client_messages")
-        .select("*")
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      // Fetch sender profiles
-      const messagesWithProfiles = await Promise.all(
-        (messagesData || []).map(async (msg) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .eq("id", msg.sender_id)
-            .single();
-
-          return { ...msg, sender_profile: profile };
-        })
-      );
-
-      setMessages(messagesWithProfiles);
+      setMessages(messagesData || []);
     } catch (error: any) {
       toast.error(`Error loading messages: ${error.message}`);
     } finally {
@@ -116,17 +73,13 @@ const ClientMessages = () => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { error } = await supabase.from("client_messages").insert({
-        sender_id: user.id,
-        recipient_id: adminId,
-        subject: newMessage.subject || null,
+      const { error } = await api.sendMessage({
+        recipientId: adminId,
+        subject: newMessage.subject || undefined,
         message: newMessage.message,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast.success("Message sent successfully");
       setDialogOpen(false);
@@ -141,12 +94,9 @@ const ClientMessages = () => {
 
   const markAsRead = async (messageId: string) => {
     try {
-      const { error } = await supabase
-        .from("client_messages")
-        .update({ read: true, read_at: new Date().toISOString() })
-        .eq("id", messageId);
+      const { error } = await api.markMessageAsRead(messageId);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
       fetchMessages();
     } catch (error: any) {
       console.error("Error marking message as read:", error);
