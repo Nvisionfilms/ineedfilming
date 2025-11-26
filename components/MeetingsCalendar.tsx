@@ -115,12 +115,22 @@ export const MeetingsCalendar = ({ userRole = "admin", clientId }: MeetingsCalen
   };
 
   const loadGoogleEvents = async () => {
+    // Only load if user is authenticated
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      console.log('Skipping Google Calendar - not authenticated');
+      return;
+    }
+    
     try {
       setLoadingGoogle(true);
       const events = await railwayApi.calendar.getEvents();
       setGoogleEvents(events || []);
-    } catch (error) {
-      console.error('Error loading Google Calendar events:', error);
+    } catch (error: any) {
+      // Silently fail if not authenticated - this is expected for clients
+      if (error?.status !== 401) {
+        console.error('Error loading Google Calendar events:', error);
+      }
     } finally {
       setLoadingGoogle(false);
     }
