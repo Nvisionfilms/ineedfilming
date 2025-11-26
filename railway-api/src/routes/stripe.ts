@@ -125,26 +125,37 @@ router.post('/create-checkout-session', async (req: Request, res: Response) => {
   try {
     const { amount, customerEmail, customerName, metadata } = req.body;
 
+    // Build product_data - only include description if it has content
+    const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData = {
+      name: metadata?.bookingType || 'Video Production Service',
+    };
+    
+    // Only add description if it exists and is not empty
+    if (metadata?.projectDetails && metadata.projectDetails.trim()) {
+      productData.description = metadata.projectDetails;
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'usd',
-            product_data: {
-              name: metadata?.bookingType || 'Video Production Service',
-              description: metadata?.projectDetails || '',
-            },
+            product_data: productData,
             unit_amount: Math.round(amount * 100), // Convert to cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/booking-portal`,
+      success_url: `${process.env.FRONTEND_URL || 'https://ineedfilming.com'}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL || 'https://ineedfilming.com'}/booking-portal`,
       customer_email: customerEmail,
-      metadata: metadata || {},
+      metadata: {
+        ...metadata,
+        customerName: customerName || metadata?.customerName || '',
+        customerEmail: customerEmail || '',
+      },
     });
 
     res.json({ url: session.url });
