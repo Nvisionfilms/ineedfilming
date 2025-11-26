@@ -116,16 +116,14 @@ export default function AdminPipeline() {
   };
 
   const handleCreateOpportunity = async () => {
-    const { error } = // TODO: await api.getOpportunities().insert([
-      {
-        ...newOpportunity,
-        budget_min: newOpportunity.budget_min ? parseFloat(newOpportunity.budget_min) : null,
-        budget_max: newOpportunity.budget_max ? parseFloat(newOpportunity.budget_max) : null,
-      },
-    ]);
+    const { error } = await api.createOpportunity({
+      ...newOpportunity,
+      budget_min: newOpportunity.budget_min ? parseFloat(newOpportunity.budget_min) : null,
+      budget_max: newOpportunity.budget_max ? parseFloat(newOpportunity.budget_max) : null,
+    });
 
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: error, variant: "destructive" });
     } else {
       toast({ title: "Success", description: "Opportunity created" });
       setIsDialogOpen(false);
