@@ -38,6 +38,9 @@ const BookingPortal = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const approvalToken = searchParams.get("token");
+  const counterBookingId = searchParams.get("booking");
+  const counterAction = searchParams.get("action");
+  const counterAmount = searchParams.get("amount");
   
   const [step, setStep] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState("");
@@ -96,6 +99,55 @@ const BookingPortal = () => {
       loadApprovedBooking();
     }
   }, [approvalToken]);
+
+  // Handle counter offer acceptance from email link
+  useEffect(() => {
+    if (counterBookingId && counterAction === "accept-counter" && counterAmount) {
+      loadCounterOfferBooking();
+    }
+  }, [counterBookingId, counterAction, counterAmount]);
+
+  const loadCounterOfferBooking = async () => {
+    try {
+      const { data: bookings } = await api.getBookings();
+      const booking = bookings?.find((b: any) => b.id === counterBookingId);
+
+      if (booking && booking.status === "counter_offered") {
+        // Pre-fill form with booking data
+        setFormData({
+          name: booking.client_name,
+          email: booking.client_email,
+          phone: booking.client_phone || "",
+          company: "",
+          projectDetails: booking.event_details || "",
+          clientType: "small_business"
+        });
+        setSelectedPackage("custom");
+        setCustomPrice(booking.approved_price?.toString() || counterAmount || "");
+        if (booking.booking_date) setSelectedDate(new Date(booking.booking_date));
+        if (booking.booking_time) setSelectedTime(booking.booking_time);
+        setPaymentType("deposit"); // Counter offers default to deposit
+        setStep(4); // Go to payment step
+        
+        toast({
+          title: "Counter Offer Accepted!",
+          description: "Please complete your deposit payment below.",
+        });
+      } else {
+        toast({
+          title: "Booking not found",
+          description: "This counter offer may have expired or already been accepted.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error loading counter offer:", error);
+      toast({
+        title: "Error loading booking",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleExpire = () => {
     setIsExpired(true);
