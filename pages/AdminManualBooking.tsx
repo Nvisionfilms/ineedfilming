@@ -132,7 +132,7 @@ export default function AdminManualBooking() {
 
       // If auto-approved, also create opportunity in pipeline
       if (formData.auto_approve) {
-        // TODO: await api.getOpportunities().insert({
+        await api.createOpportunity({
           booking_id: booking.id,
           contact_name: formData.client_name,
           contact_email: formData.client_email,
@@ -177,18 +177,20 @@ export default function AdminManualBooking() {
 
       if (fetchError) throw fetchError;
 
-      // Call Edge Function to create payment link
-      const { data, error } = /* TODO: Railway API */ null as any // supabase.functions.invoke("create-payment-link", {
-        body: {
+      // Create Stripe payment link
+      const { data, error } = await api.createCheckoutSession({
+        amount: deposit,
+        customerEmail: formData.client_email,
+        customerName: formData.client_name,
+        metadata: {
           bookingId: createdBookingId,
-          amount: deposit, // Default to deposit
           description: `Deposit for ${formData.client_name} - ${formData.project_details || 'Video Project'}`,
-        },
+        }
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
-      setPaymentLink(data.url);
+      setPaymentLink(data?.url || '');
       setPaymentLinkGenerated(true);
 
       toast({
