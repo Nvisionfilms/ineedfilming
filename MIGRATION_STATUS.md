@@ -92,18 +92,18 @@ These pages still use Supabase and need Railway API integration:
 
 ### Railway API (Production)
 ```
-DATABASE_URL=postgresql://postgres:***@shortline.proxy.rlwy.net:43174/railway
-JWT_SECRET=nvision-films-super-secret-jwt-key-change-in-production-2025
-STRIPE_SECRET_KEY=sk_live_51IJbQSIk5yHgcjhl...
-STRIPE_WEBHOOK_SECRET=whsec_1mOcfhGFF958Eg0eOEDVaVxwvrDL6gIfv
-RESEND_API_KEY=re_Hy74KX9i_3aimKggRY1EnRg1qVyZ75rjL
+DATABASE_URL=<your_railway_database_url>
+JWT_SECRET=<your_jwt_secret>
+STRIPE_SECRET_KEY=<your_stripe_secret_key>
+STRIPE_WEBHOOK_SECRET=<your_stripe_webhook_secret>
+RESEND_API_KEY=<your_resend_api_key>
 FRONTEND_URL=https://nvisionfilms.netlify.app
 ```
 
 ### Frontend (Netlify)
 ```
 VITE_API_URL=https://api-production-d1ca.up.railway.app
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51IJbQSIk5yHgcjhl...
+VITE_STRIPE_PUBLISHABLE_KEY=<your_stripe_publishable_key>
 ```
 
 ## 🚀 API Status
