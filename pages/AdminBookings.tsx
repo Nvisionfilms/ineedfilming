@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { CheckCircle, XCircle, DollarSign, Clock, User, Mail, Phone, Building, Search, Filter, CreditCard, Archive, ChevronDown, ChevronUp, Trash2, ExternalLink, Folder, FileText, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SensitiveDataMask } from "@/components/SensitiveDataMask";

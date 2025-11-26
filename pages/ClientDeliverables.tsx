@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { ClientNavigation } from "@/components/client/ClientNavigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

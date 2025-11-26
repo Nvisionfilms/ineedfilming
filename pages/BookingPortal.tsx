@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Calendar as CalendarIcon, Clock, DollarSign, Package as PackageIcon, CreditCard, CheckCircle2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { packages as sharedPackages, customPackage, timeSlots, calculateDeposit, getDepositPercentage } from "@/constants/packages";

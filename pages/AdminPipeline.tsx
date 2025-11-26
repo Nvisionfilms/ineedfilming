@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Mail, Phone, Building, DollarSign, Trash2, Video, Calendar as CalendarIcon, MoreVertical, TrendingUp, AlertCircle, Clock } from "lucide-react";
 import { format, formatDistanceToNow, differenceInDays, isBefore } from "date-fns";

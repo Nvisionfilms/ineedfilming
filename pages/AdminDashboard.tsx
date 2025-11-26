@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { DollarSign, Users, Briefcase, TrendingUp, Clock, CheckCircle, Target, Video, Film, Clapperboard, Plus, Upload, MessageSquare as MessageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
@@ -29,27 +29,17 @@ export default function AdminDashboard() {
   }, []);
 
   const loadDashboardData = async () => {
-    // Load bookings (exclude archived and permanently deleted)
-    const { data: bookings } = await supabase
-      .from("custom_booking_requests")
-      .select("*")
-      .is("archived_at", null)
-      .neq("deleted_permanently", true);
+    // Load bookings
+    const { data: bookings } = await api.getBookings();
 
     // Load projects
-    const { data: projects } = await supabase
-      .from("projects")
-      .select("*");
+    const { data: projects } = await api.getProjects();
 
     // Load payments
-    const { data: payments } = await supabase
-      .from("payments")
-      .select("*");
+    const { data: payments } = await api.getPayments();
 
-    // Load opportunities
-    const { data: opportunities } = await supabase
-      .from("opportunities")
-      .select("*");
+    // Load opportunities (if endpoint exists)
+    const { data: opportunities } = await api.request('/api/opportunities', { method: 'GET' }) || { data: [] };
 
     if (bookings) {
       // Calculate ACTUAL revenue from paid payments only

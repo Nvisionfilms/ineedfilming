@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { DollarSign, CheckCircle, Clock, Calendar, AlertCircle, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
