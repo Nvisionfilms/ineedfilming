@@ -120,7 +120,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
   }
 });
 
-// Create checkout session
+// Create checkout session - Fixed empty description issue
 router.post('/create-checkout-session', async (req: Request, res: Response) => {
   try {
     const { amount, customerEmail, customerName, metadata } = req.body;
