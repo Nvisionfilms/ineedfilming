@@ -388,6 +388,28 @@ export const railwayApi = {
         method: 'DELETE',
       }),
   },
+
+  // ==================== GOOGLE CALENDAR ====================
+  calendar: {
+    getEvents: () =>
+      apiRequest<any[]>('/api/calendar/events'),
+
+    syncMeeting: (meetingId: string) =>
+      apiRequest<{ success: boolean; eventId: string; meetLink: string; htmlLink: string }>('/api/calendar/sync', {
+        method: 'POST',
+        body: JSON.stringify({ meetingId }),
+      }),
+
+    updateEvent: (meetingId: string) =>
+      apiRequest<{ success: boolean; eventId: string; htmlLink: string }>(`/api/calendar/sync/${meetingId}`, {
+        method: 'PUT',
+      }),
+
+    deleteEvent: (meetingId: string) =>
+      apiRequest<{ success: boolean }>(`/api/calendar/sync/${meetingId}`, {
+        method: 'DELETE',
+      }),
+  },
 };
 
 export { RailwayApiError };
