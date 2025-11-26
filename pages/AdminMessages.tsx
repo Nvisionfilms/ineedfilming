@@ -68,7 +68,7 @@ const AdminMessages = () => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("client_messages").insert({

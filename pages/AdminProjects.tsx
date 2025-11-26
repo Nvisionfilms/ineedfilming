@@ -169,7 +169,7 @@ export default function AdminProjects() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       
       const { error } = await supabase
         .from('meetings')

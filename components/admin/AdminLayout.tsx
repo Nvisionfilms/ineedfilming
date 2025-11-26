@@ -68,7 +68,7 @@ export function AdminLayout() {
   }, [lastActivity, showTimeoutWarning]);
 
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: user, error } = await api.getCurrentUser();
     if (session?.user) {
       setUserEmail(session.user.email || "");
       checkMFAStatus();

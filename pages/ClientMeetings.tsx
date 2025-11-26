@@ -46,7 +46,7 @@ const ClientMeetings = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      // Real-time removed - can add WebSocket later
     };
   }, []);
 
@@ -54,7 +54,7 @@ const ClientMeetings = () => {
     try {
       setLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) {
         setLoading(false);
         return;

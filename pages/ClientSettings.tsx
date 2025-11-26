@@ -37,7 +37,7 @@ const ClientSettings = () => {
     setLoading(true);
     try {
       // Verify current password by attempting to sign in
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user?.email) throw new Error("User not found");
 
       const { error: signInError } = await supabase.auth.signInWithPassword({

@@ -75,7 +75,7 @@ const AdminBookings = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      // Real-time removed - can add WebSocket later
     };
   }, []);
 
@@ -303,7 +303,7 @@ const AdminBookings = () => {
   };
 
   const handleArchive = async (bookingId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: user, error: authError } = await api.getCurrentUser();
     
     const { error } = await supabase
       .from("custom_booking_requests")
@@ -403,7 +403,7 @@ const AdminBookings = () => {
       scheduledDateTime.setHours(hours, minutes, 0, 0);
 
       // Direct database insert for meeting
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       
       const { error } = await supabase
         .from('meetings')

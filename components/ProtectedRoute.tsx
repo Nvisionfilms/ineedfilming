@@ -13,43 +13,25 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   useEffect(() => {
     checkAdminAccess();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      checkAdminAccess();
-    });
-
-    return () => subscription.unsubscribe();
+    // Real-time auth changes can be added later
   }, []);
 
   const checkAdminAccess = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: user, error } = await api.getCurrentUser();
       
-      if (!session?.user) {
+      if (error || !user) {
         setIsAdmin(false);
         setIsLoading(false);
         return;
       }
 
       // Check if user has admin role
-      const { data: roles, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .single();
-
-      if (error || !roles) {
+      if (user.role === 'admin') {
+        setIsAdmin(true);
+      } else {
         setIsAdmin(false);
-        setIsLoading(false);
-        return;
       }
-
-      // TEMPORARY: Allow access without 2FA for initial setup
-      // TODO: Re-enable 2FA requirement after admin sets up 2FA
-      
-      setIsAdmin(true);
     } catch (error) {
       console.error("Error checking admin access:", error);
       setIsAdmin(false);

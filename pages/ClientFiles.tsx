@@ -52,7 +52,7 @@ const ClientFiles = () => {
   const fetchFiles = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data: accountData } = await supabase
@@ -91,7 +91,7 @@ const ClientFiles = () => {
 
     setUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       // Check storage limit before upload

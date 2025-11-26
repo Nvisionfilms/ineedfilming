@@ -92,7 +92,7 @@ export default function AdminPipeline() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      // Real-time removed - can add WebSocket later
     };
   }, []);
 
@@ -228,7 +228,7 @@ export default function AdminPipeline() {
       
       console.log("📅 Scheduled date/time:", scheduledDateTime.toISOString());
       
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       
       const { error } = await supabase
         .from('meetings')

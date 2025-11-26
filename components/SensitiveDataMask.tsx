@@ -32,7 +32,7 @@ export function SensitiveDataMask({ data, type, recordId, tableName }: Sensitive
     if (!recordId || !tableName) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) return;
 
       await supabase.from("admin_audit_log" as any).insert({

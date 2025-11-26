@@ -74,7 +74,7 @@ export default function AdminMeetings() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      // Real-time removed - can add WebSocket later
     };
   }, []);
 

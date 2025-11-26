@@ -59,7 +59,7 @@ export default function ClientDeliverables() {
 
   const loadDeliverables = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data: clientAccount } = await supabase
@@ -130,7 +130,7 @@ export default function ClientDeliverables() {
 
   const handleApprove = async (versionId: string, deliverableId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error: updateError } = await supabase
@@ -181,7 +181,7 @@ export default function ClientDeliverables() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error: feedbackError } = await supabase

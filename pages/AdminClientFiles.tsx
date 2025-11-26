@@ -126,7 +126,7 @@ const AdminClientFiles = () => {
 
     setUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const bucket = uploadCategory === "deliverables" ? "project-deliverables" : 

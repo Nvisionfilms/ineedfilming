@@ -50,7 +50,7 @@ export default function ClientPaymentBalance() {
     setLoading(true);
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       // Get client account

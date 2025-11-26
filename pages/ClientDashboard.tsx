@@ -50,7 +50,7 @@ const ClientDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const [accountRes, messagesRes, filesRes, meetingsRes] = await Promise.all([
