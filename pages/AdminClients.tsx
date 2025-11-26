@@ -429,10 +429,13 @@ const AdminClients = () => {
 
     setResendingConfirmation(true);
     try {
-      // Use Supabase auth resend
-      const { error } = await api.request("/api/auth/resend-confirmation", { method: "POST", body: JSON.stringify({
-        type: 'signup',
-        email: resendEmail,
+      // Resend confirmation email via Railway API
+      const { error } = await api.request("/api/auth/resend-confirmation", { 
+        method: "POST", 
+        body: JSON.stringify({
+          type: 'signup',
+          email: resendEmail,
+        })
       });
 
       if (error) throw error;
