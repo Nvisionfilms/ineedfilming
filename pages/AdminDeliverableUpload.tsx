@@ -72,7 +72,7 @@ export default function AdminDeliverableUpload() {
 
       // Upload file to storage
       const filePath = `${deliverable.project_id}/${id}/v${nextVersion}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = // TODO: Replace with R2 storage - supabase.storage
         .from("project-deliverables")
         .upload(filePath, file);
 

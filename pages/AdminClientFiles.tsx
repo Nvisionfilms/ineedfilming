@@ -133,7 +133,7 @@ const AdminClientFiles = () => {
                      uploadCategory === "private" ? "project-private-files" : "project-shared-files";
       const filePath = `${client.project_id}/${Date.now()}_${uploadFile.name}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .upload(filePath, uploadFile);
 
@@ -171,7 +171,7 @@ const AdminClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { data, error } = await supabase.storage
+      const { data, error } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .download(path);
 
@@ -197,7 +197,7 @@ const AdminClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { error: storageError } = await supabase.storage
+      const { error: storageError } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .remove([path]);
 
@@ -241,7 +241,7 @@ const AdminClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { data, error } = await supabase.storage
+      const { data, error } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .createSignedUrl(path, 3600); // 1 hour expiry
 

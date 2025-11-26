@@ -33,7 +33,7 @@ export const PaymentLinkDialog = ({ booking, onSuccess }: PaymentLinkDialogProps
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-payment-link", {
+      const { data, error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke("create-payment-link", {
         body: {
           bookingId: booking.id,
           amount: parseFloat(amount),

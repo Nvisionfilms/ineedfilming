@@ -71,6 +71,10 @@ import projectRoutes from './routes/projects.js';
 import fileRoutes from './routes/files.js';
 import messageRoutes from './routes/messages.js';
 import contactRoutes from './routes/contact.js';
+import paymentRoutes from './routes/payments.js';
+import meetingRoutes from './routes/meetings.js';
+import opportunityRoutes from './routes/opportunities.js';
+import deliverableRoutes from './routes/deliverables.js';
 
 // Mount routes
 app.use('/api/setup', setupRoutes);
@@ -84,6 +88,10 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/meetings', meetingRoutes);
+app.use('/api/opportunities', opportunityRoutes);
+app.use('/api/deliverables', deliverableRoutes);
 
 // 404 handler
 app.use((req, res) => {

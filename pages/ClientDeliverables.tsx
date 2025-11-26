@@ -107,7 +107,7 @@ export default function ClientDeliverables() {
       for (const deliverable of deliverablesWithVersions) {
         for (const version of deliverable.versions) {
           if (isVideoFile(version.file_name)) {
-            const { data } = await supabase.storage
+            const { data } = // TODO: Replace with R2 storage - supabase.storage
               .from(version.storage_bucket)
               .createSignedUrl(version.file_path, 3600);
             if (data?.signedUrl) {
@@ -224,7 +224,7 @@ export default function ClientDeliverables() {
 
   const handleDownload = async (version: Version) => {
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = // TODO: Replace with R2 storage - supabase.storage
         .from(version.storage_bucket)
         .download(version.file_path);
 

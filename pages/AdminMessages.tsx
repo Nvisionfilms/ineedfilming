@@ -71,7 +71,7 @@ const AdminMessages = () => {
       const { data: user, error: authError } = await api.getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("client_messages").insert({
+      const { error } = await api.getMessages().insert({
         sender_id: user.id,
         recipient_id: selectedMessage.sender_id,
         subject: selectedMessage.subject ? `Re: ${selectedMessage.subject}` : null,

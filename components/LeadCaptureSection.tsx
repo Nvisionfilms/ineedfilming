@@ -123,7 +123,7 @@ const LeadCaptureSection = () => {
 
     try {
       // Call Edge Function to handle submission with email notifications
-      const { error } = await supabase.functions.invoke("submit-custom-booking", {
+      const { error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke("submit-custom-booking", {
         body: {
           clientName: name,
           clientEmail: email,

@@ -44,7 +44,7 @@ export const StorageUpgradeDialog = ({
     try {
       setPurchasing(true);
       
-      const { data, error } = await supabase.functions.invoke("purchase-storage-upgrade", {
+      const { data, error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke("purchase-storage-upgrade", {
         body: { storage_amount: amount },
       });
 

@@ -114,7 +114,7 @@ const AdminBookings = () => {
 
   const loadProjects = async () => {
     try {
-      const { data, error } = await supabase.from("projects").select("*");
+      const { data, error } = await api.getProjects();
       if (error) throw error;
       setProjects(data || []);
     } catch (error) {
@@ -125,7 +125,7 @@ const AdminBookings = () => {
 
   const loadClientAccounts = async () => {
     try {
-      const { data, error } = await supabase.from("client_accounts").select("*");
+      const { data, error } = await api.getClients();
       if (error) throw error;
       setClientAccounts(data || []);
     } catch (error) {
@@ -136,7 +136,7 @@ const AdminBookings = () => {
 
   const loadMeetings = async () => {
     try {
-      const { data, error } = await supabase.from("meetings").select("*");
+      const { data, error } = await api.getMeetings();
       if (error) throw error;
       // Filter out meetings with invalid dates
       const validMeetings = (data || []).filter(m => {
@@ -199,7 +199,7 @@ const AdminBookings = () => {
     setIsProcessing(true);
     try {
       // Call Edge Function to handle booking action and send email
-      const { data, error } = await supabase.functions.invoke('approve-custom-booking', {
+      const { data, error } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke('approve-custom-booking', {
         body: {
           bookingId: selectedBooking.id,
           action: action,

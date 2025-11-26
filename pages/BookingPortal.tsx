@@ -295,7 +295,7 @@ const BookingPortal = () => {
       }
 
       // Create Stripe checkout session
-      const { data, error: paymentError } = await supabase.functions.invoke('create-checkout-session', {
+      const { data, error: paymentError } = // TODO: Replace with Railway API endpoint - supabase.functions.invoke('create-checkout-session', {
         body: {
           packageId: selectedPackage,
           packageName: selectedPkg?.name,

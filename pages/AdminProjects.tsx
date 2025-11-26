@@ -117,7 +117,7 @@ export default function AdminProjects() {
   };
 
   const loadPayments = async () => {
-    const { data } = await supabase.from("payments").select("*");
+    const { data } = await api.getPayments();
     if (data) setPayments(data);
   };
 
@@ -212,7 +212,7 @@ export default function AdminProjects() {
             const [bucket, ...pathParts] = file.file_path.split("/");
             const path = pathParts.join("/");
             
-            await supabase.storage.from(bucket).remove([path]);
+            // TODO: Replace with R2 storage - supabase.storage.from(bucket).remove([path]);
           }
 
           // Delete file records

@@ -116,7 +116,7 @@ export default function AdminPipeline() {
   };
 
   const handleCreateOpportunity = async () => {
-    const { error } = await supabase.from("opportunities").insert([
+    const { error } = // TODO: await api.getOpportunities().insert([
       {
         ...newOpportunity,
         budget_min: newOpportunity.budget_min ? parseFloat(newOpportunity.budget_min) : null,

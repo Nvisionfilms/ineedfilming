@@ -118,7 +118,7 @@ const ClientFiles = () => {
       const bucket = selectedCategory === "shared" ? "project-shared-files" : "project-private-files";
       const filePath = `${projectId}/${user.id}/${Date.now()}_${uploadFile.name}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .upload(filePath, uploadFile);
 
@@ -165,7 +165,7 @@ const ClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { data, error } = await supabase.storage
+      const { data, error } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .download(path);
 
@@ -191,7 +191,7 @@ const ClientFiles = () => {
       const [bucket, ...pathParts] = file.file_path.split("/");
       const path = pathParts.join("/");
 
-      const { error: storageError } = await supabase.storage
+      const { error: storageError } = // TODO: Replace with R2 storage - supabase.storage
         .from(bucket)
         .remove([path]);
 

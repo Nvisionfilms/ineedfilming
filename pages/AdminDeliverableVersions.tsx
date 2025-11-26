@@ -124,7 +124,7 @@ export default function AdminDeliverableVersions() {
 
   const handleDownload = async (version: Version) => {
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = // TODO: Replace with R2 storage - supabase.storage
         .from(version.storage_bucket)
         .download(version.file_path);
 
