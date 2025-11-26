@@ -232,16 +232,17 @@ const AdminClients = () => {
 
     setCreating(true);
     try {
-      // Call Edge Function to create user (requires service role)
-      const { data, error } = /* TODO: Railway API */ null as any // supabase.functions.invoke('create-client-user', {
-        body: {
+      // Create client via Railway API
+      const { data, error } = await api.request('/api/clients/create', {
+        method: 'POST',
+        body: JSON.stringify({
           email: newClient.email,
           password: newClient.password,
           full_name: newClient.full_name,
           company_name: newClient.company_name,
           project_id: newClient.project_id || null,
           booking_id: newClient.booking_id || null,
-        }
+        })
       });
 
       console.log('Edge Function response:', { data, error });
