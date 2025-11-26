@@ -82,6 +82,7 @@ import paymentRoutes from './routes/payments.js';
 import meetingRoutes from './routes/meetings.js';
 import opportunityRoutes from './routes/opportunities.js';
 import deliverableRoutes from './routes/deliverables.js';
+import calendarRoutes from './routes/calendar.js';
 
 // Mount routes
 app.use('/api/setup', setupRoutes);
@@ -99,6 +100,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/deliverables', deliverableRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 // 404 handler
 app.use((req, res) => {
