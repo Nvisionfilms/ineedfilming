@@ -184,6 +184,12 @@ class ApiClient {
     });
   }
 
+  async searchClients(query: string) {
+    return this.request(`/api/clients/search?q=${encodeURIComponent(query)}`, {
+      method: 'GET',
+    });
+  }
+
   // Admin - Bookings
   async getBookings() {
     return this.request('/api/bookings', {

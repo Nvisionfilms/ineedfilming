@@ -171,7 +171,7 @@ export default function ProjectShotList() {
     }
 
     try {
-      const { error } = await supabase.from("shot_list_items").insert({
+      const { error } = await api.request("/api/shot-lists/items", { method: "POST", body: JSON.stringify({
         shot_list_id: selectedList,
         description: newShotDescription,
         duration_seconds: parseInt(newShotDuration) || 5,

@@ -124,7 +124,7 @@ const ClientFiles = () => {
 
       if (uploadError) throw uploadError;
 
-      const { error: dbError } = await supabase.from("project_files").insert({
+      const { error: dbError } = await api.request("/api/files", { method: "POST", body: JSON.stringify({
         project_id: projectId,
         uploaded_by: user.id,
         file_name: uploadFile.name,

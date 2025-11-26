@@ -40,7 +40,7 @@ const ClientSettings = () => {
       const { data: user, error: authError } = await api.getCurrentUser();
       if (!user?.email) throw new Error("User not found");
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await api.login({
         email: user.email,
         password: currentPassword,
       });
@@ -51,7 +51,7 @@ const ClientSettings = () => {
       }
 
       // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await api.changePassword({
         password: newPassword,
       });
 

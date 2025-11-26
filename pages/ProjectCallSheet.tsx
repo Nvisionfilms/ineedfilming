@@ -104,7 +104,7 @@ export default function ProjectCallSheet() {
 
     setIsCreating(true);
     try {
-      const { error } = await supabase.from("call_sheets").insert({
+      const { error } = await api.request("/api/call-sheets", { method: "POST", body: JSON.stringify({
         project_id: projectId,
         shoot_date: shootDate,
         call_time: callTime,
